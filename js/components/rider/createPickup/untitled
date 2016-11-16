@@ -1,0 +1,72 @@
+<View style={styles.container}>
+                  <StatusBar barStyle='default' />
+                  <Content theme={theme}>
+                  </Content>
+
+                  <View style={styles.map}>
+                        {(this.state.visible) ?
+                        <MapView ref={map => { this._map = map; }}
+                            style={styles.map}
+                            rotateEnabled={true}
+                            showsUserLocation={true}
+                            attributionButtonIsHidden = {false}
+                            logoIsHidden = {true}
+                            compassIsHidden = {true}
+                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
+                            initalZoomLevel = {10}
+                            centerCoordinate={this.state.center}
+                            userLocationVisible={true}
+                            userTrackingMode = {Mapbox.userTrackingMode.follow}
+                            
+                            debugActive={false}
+                            direction={this.state.direction}
+                            annotations={this.state.annotations}
+                            onRegionChange={this.onChange}
+                            onOpenAnnotation={this.onOpenAnnotation}
+                            onUpdateUserLocation={this.onUpdateUserLocation}/>
+                        : <View />
+                        }
+                    </View>
+                    
+                  <View style={styles.headerContainer}>
+                       <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
+                        <Button transparent  onPress={() => this.popRoute()} >
+                            <Icon name='md-arrow-back' style={{fontSize: 28}} />
+                        </Button>
+                        <Text style={Platform.OS === 'ios' ? styles.iosHeaderTitle : styles.aHeaderTitle}>createPickup.js</Text>
+                    </Header>
+                    
+                     </View>
+        
+                  
+                     <View style={styles.modalStyle}>
+               
+                       
+               
+
+                        <View style={{padding: 10}}>
+                       
+                           <InputGroup  borderType='rounded' style={{marginLeft: 30, marginRight:30}}>
+                                  <Icon name='ios-briefcase' style={{color:'#16ADD4'}}/>
+                                <Input onChangeText={(text) => this.setState({itemPickup:text})} value={this.state.itemPickup}placeholder="Item"  placeholderTextColor="#000" />
+                            </InputGroup>
+                            
+                        </View>
+                        <View style={{padding: 10}}>
+                       <InputGroup borderType='rounded' style={{marginLeft: 30, marginRight:30}}>
+                                <Icon name='ios-paper' style={{color:'#16ADD4'}}/>
+                                <Input onChangeText={(text) => this.setState({notes:text})} value={this.state.notes}placeholder="Notes"  placeholderTextColor="#000" />
+                            </InputGroup>
+                            
+                            
+                        </View>
+                        <View style={{padding: 10}}>
+                       <Button rounded style={styles.formButton} onPress={() => {this.createPickup()}}
+             underlayColor='#99d9f4'>
+                    <Text style={styles.buttonText}>Next</Text>
+                  </Button>
+                        </View>
+                     </View>
+                 
+                </View>
+                

@@ -1,0 +1,45 @@
+{
+  "name": "WosylDelivery",
+  "version": "4.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "remotedev-debugger && node ./scripts/replace.js",
+    "start": "node_modules/react-native/packager/packager.sh"
+  },
+  "dependencies": {
+    "action-cable-react-native": "0.0.4",
+    "lodash": "^4.13.1",
+    "moment": "^2.13.0",
+    "native-base": "0.4.9",
+    "react": "^15.1.0",
+    "react-native": "^0.34.1",
+    "react-native-actioncable": "0.0.3",
+    "react-native-awesome-button": "^1.6.0",
+    "react-native-blur": "^1.0.1",
+    "react-native-braintree": "^0.5.0",
+    "react-native-camera": "git+https://github.com/lwansbrough/react-native-camera.git",
+    "react-native-code-push": "^1.12.1-beta",
+    "react-native-country-picker-modal": "^0.1.6",
+    "react-native-form": "^2.1.0",
+    "react-native-google-places-autocomplete": "^1.1.10",
+    "react-native-keyboard-aware-scroll-view": "^0.2.0",
+    "react-native-mapbox-gl": "^5.0.0",
+    "react-native-maps": "0.7.1",
+    "react-native-overlay": "^0.5.0",
+    "react-native-progress-bar": "^0.1.2",
+    "react-native-simple-modal": "^4.0.1",
+    "react-native-vector-icons": "^2.0.3",
+    "react-redux": "^4.4.5",
+    "redux": "^3.5.2",
+    "redux-persist": "^3.2.2",
+    "redux-thunk": "^2.1.0",
+    "replace": "0.3.0",
+    "rx": "^4.1.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3",
+    "remote-redux-devtools": "^0.3.3",
+    "remote-redux-devtools-on-debugger": "^0.4.6"
+  }
+}
