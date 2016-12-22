@@ -1,5 +1,20 @@
 # Braintree iOS SDK Release Notes
 
+## 4.7.3 (2016-11-18)
+* Allow `BraintreeCore` to be compatible with App Extensions
+* Fix `BraintreePayPal` use of `queryItems` for iOS 7 compatibility
+* Present SFSafariViewControllers from the top UIViewController via Drop-in to avoid blank SFSafariViewController
+  * Set `BTPaymentRequest` `presentViewControllersFromTop` to `YES` to opt in to this behavior
+* Fix `@param` warning for incorrect argument name
+* Fix CocoaDocs and add styling
+
+## 4.7.2 (2016-11-08)
+
+* Update Apple-Pay
+  * Fix issue when using `BTConfiguration:applePaySupportedNetworks` with `Discover` enabled on devices `<iOS 9`
+  * Add `BTApplePayClient:paymentRequest:` - creates a `PKPaymentRequest` with values from your Braintree Apple Pay configuration
+* Update documentation and README
+
 ## 4.7.1 (2016-10-18)
 
 * Update to Kount 3.1

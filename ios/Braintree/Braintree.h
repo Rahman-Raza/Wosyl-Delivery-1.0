@@ -2,8 +2,8 @@
 //  Braintree.h
 //  Braintree
 //
-//  Created by Razi  on 10/26/16.
-//  Copyright © 2016 Facebook. All rights reserved.
+//  Created by Razi  on 12/14/16.
+//
 //
 
 #import <UIKit/UIKit.h>

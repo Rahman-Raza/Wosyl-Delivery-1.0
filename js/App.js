@@ -53,43 +53,43 @@ class App extends Component {
 
     componentDidMount() {
         /* Uncomment this code for testing the update modal */
-        // this.setState({showDownloadingModal: true});
-        //this.setState({showInstalling: true});
-        // this.refs.modal.open();
+        //  this.setState({showDownloadingModal: true});
+        // this.setState({showInstalling: true});
+        //  this.refs.modal.open();
         // var intervalId = setInterval(() => {
-        //     if(this.state.downloadProgress == 99) {
-        //         clearInterval(intervalId);
-        //         this.setState({showDownloadingModal: false});
-        //     }
-        //     this.setState({downloadProgress: this.state.downloadProgress + 1});
-        // }, 30);
+        //      if(this.state.downloadProgress == 99) {
+        //          clearInterval(intervalId);
+        //          this.setState({showDownloadingModal: false});
+        //      }
+        //      this.setState({downloadProgress: this.state.downloadProgress + 1});
+        //  }, 30);
 
         // Prompt the user when an update is available
         // and then display a "downloading" modal
 
-        // codePush.sync({ updateDialog: true, installMode: codePush.InstallMode.IMMEDIATE },
-        //   (status) => {
-        //       switch (status) {
-        //           case codePush.SyncStatus.DOWNLOADING_PACKAGE:
-        //               this.setState({showDownloadingModal: true});
-        //               console.log("Downloading package.");
-        //               this.refs.modal.open();
-        //               break;
-        //           case codePush.SyncStatus.INSTALLING_UPDATE:
-        //               this.setState({showInstalling: true});
-        //               console.log("Installing update.");
-        //               break;
-        //           case codePush.SyncStatus.UPDATE_INSTALLED:
-        //               this.refs.modal.close();
-        //               this.setState({showDownloadingModal: false});
-        //               console.log("Update installed.");
-        //               break;
-        //       }
-        //   },
-        //   ({ receivedBytes, totalBytes, }) => {
-        //     this.setState({downloadProgress: receivedBytes / totalBytes * 100});
-        //   }
-        // );
+         // codePush.sync({ updateDialog: true, installMode: codePush.InstallMode.IMMEDIATE },
+         //   (status) => {
+         //       switch (status) {
+         //           case codePush.SyncStatus.DOWNLOADING_PACKAGE:
+         //               this.setState({showDownloadingModal: true});
+         //               console.log("Downloading package.");
+         //               this.refs.modal.open();
+         //               break;
+         //           case codePush.SyncStatus.INSTALLING_UPDATE:
+         //               this.setState({showInstalling: true});
+         //               console.log("Installing update.");
+         //               break;
+         //           case codePush.SyncStatus.UPDATE_INSTALLED:
+         //               this.refs.modal.close();
+         //               this.setState({showDownloadingModal: false});
+         //               console.log("Update installed.");
+         //               break;
+         //       }
+         //   },
+         //   ({ receivedBytes, totalBytes, }) => {
+         //    this.setState({downloadProgress: receivedBytes / totalBytes * 100});
+         //   }
+         // );
     }
 
     render() {

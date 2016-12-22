@@ -2,13 +2,17 @@
 
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { View,StatusBar,Platform,Image} from 'react-native';
+
+import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter} from 'react-native';
 
 import { replaceRoute,popRoute} from '../../../actions/route';
 import {setUser} from '../../../actions/user';
 
+
 import { Container, Header, Text, Button, Icon, InputGroup, Input } from 'native-base';
 import { Grid, Col, Row } from 'react-native-easy-grid';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareListView } from 'react-native-keyboard-aware-scroll-view';
 
 import styles from './styles';
 import theme from '../../../themes/base-theme';
@@ -17,6 +21,21 @@ import {
    AppRegistry,
    TouchableOpacity,
 } from 'react-native';
+
+class BackgroundImage extends Component {
+
+    render() {
+        return (
+
+            <Image style={styles.backgroundImage}
+                          source={require('../login/Rectangle904.png')}>
+
+                          {this.props.children}
+             </Image>
+
+        )
+    }
+}
 
 
 class SignIn extends Component {
@@ -33,10 +52,11 @@ class SignIn extends Component {
       super(props);
 
       this.state ={
-      open: false,
-      name: '',
-      password: '',
-      is_driver_verified: false,
+        visiblePadding: 0,
+        open: false,
+        name: '',
+        password: '',
+        is_driver_verified: false,
     };
     }
 
@@ -57,6 +77,27 @@ class SignIn extends Component {
     }
 
 
+    keyboardWillShow(e) {
+    
+    this.setState({visiblePadding: 300})
+    console.log("set the visible padding")
+  }
+
+  keyboardWillHide(e) {
+    this.setState({visiblePadding: 0})
+
+  }
+
+
+   componentWillMount(){
+
+     DeviceEventEmitter.addListener('keyboardWillShow', this.keyboardWillShow.bind(this));
+    DeviceEventEmitter.addListener('keyboardWillHide', this.keyboardWillHide.bind(this));
+}
+
+ 
+
+
     
     render() {
         return (
@@ -70,15 +111,16 @@ class SignIn extends Component {
                     </Header>
                     <View style={{padding: 10}}>
                       <View  style={{
-                        paddingTop: 50,
+                        paddingTop: 10,
                             justifyContent: 'center',
                             alignItems: 'center', }}>
                         <Image
                         style={{padding:50}}
-                          source={require('./logo.png')}>
+                          source={require('../login/logo1x.png')}>
                           </Image>
                         
                       </View>
+                      <View style={{marginTop:40}}>
                         <View style={{padding: 10}}>
                             <InputGroup borderType="rounded" style={{marginLeft:20,marginRight:20}}>
                                 <Icon name='ios-contact' style={{color:'#16ADD4'}}/>
@@ -93,7 +135,8 @@ class SignIn extends Component {
                         </View>
 
 
-                        <View style={styles.regBtnContain}>
+                        <View style={{  paddingVertical: 20,
+    paddingHorizontal: 10}}>
 
 
 
@@ -124,6 +167,7 @@ class SignIn extends Component {
                                                                     this.setState({is_driver_verified:responseJson.user.is_driver_verified});
 
                                                                     if(responseJson.user.is_driver_verified){
+                                                                      console.log("state.userDetail", this.state.userDetail);
                                                                       this.replaceRoute('driverHome',this.state.userDetail);
 
                                                                     }
@@ -164,10 +208,11 @@ class SignIn extends Component {
                                                             console.error(error);
                                                           })
 
-                              }    block style={{marginLeft:20,marginRight:20}} >
+                              }    block style={{marginLeft:20,marginRight:20,marginBottom: this.state.visiblePadding}} >
                                   
                                     <Text style={{fontWeight: '600',color: '#fff'}}>SIGN IN</Text>
                                 </Button>
+                        </View>
                         </View>
 
                         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>

@@ -46,8 +46,8 @@ const LATITUDE_DELTA = 0.0722;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const SPACE = 0.01;
 
-var BTClient = require('react-native-braintree');
-BTClient.setup("eyJ2ZXJzaW9uIjoyLCJhdXRob3JpemF0aW9uRmluZ2VycHJpbnQiOiIxNDM1MzU4MGM0NmQwY2ZlMDJiMjFjNDZjNjkzNzBjZTE0NTI3MGI3ZjIwN2YzMGE4MTUxYjlmODhjZTI4NTNifGNyZWF0ZWRfYXQ9MjAxNi0xMC0yN1QwNDowNDoxMC45NzgwMDEyNDArMDAwMFx1MDAyNm1lcmNoYW50X2lkPTM0OHBrOWNnZjNiZ3l3MmJcdTAwMjZwdWJsaWNfa2V5PTJuMjQ3ZHY4OWJxOXZtcHIiLCJjb25maWdVcmwiOiJodHRwczovL2FwaS5zYW5kYm94LmJyYWludHJlZWdhdGV3YXkuY29tOjQ0My9tZXJjaGFudHMvMzQ4cGs5Y2dmM2JneXcyYi9jbGllbnRfYXBpL3YxL2NvbmZpZ3VyYXRpb24iLCJjaGFsbGVuZ2VzIjpbXSwiZW52aXJvbm1lbnQiOiJzYW5kYm94IiwiY2xpZW50QXBpVXJsIjoiaHR0cHM6Ly9hcGkuc2FuZGJveC5icmFpbnRyZWVnYXRld2F5LmNvbTo0NDMvbWVyY2hhbnRzLzM0OHBrOWNnZjNiZ3l3MmIvY2xpZW50X2FwaSIsImFzc2V0c1VybCI6Imh0dHBzOi8vYXNzZXRzLmJyYWludHJlZWdhdGV3YXkuY29tIiwiYXV0aFVybCI6Imh0dHBzOi8vYXV0aC52ZW5tby5zYW5kYm94LmJyYWludHJlZWdhdGV3YXkuY29tIiwiYW5hbHl0aWNzIjp7InVybCI6Imh0dHBzOi8vY2xpZW50LWFuYWx5dGljcy5zYW5kYm94LmJyYWludHJlZWdhdGV3YXkuY29tLzM0OHBrOWNnZjNiZ3l3MmIifSwidGhyZWVEU2VjdXJlRW5hYmxlZCI6dHJ1ZSwicGF5cGFsRW5hYmxlZCI6dHJ1ZSwicGF5cGFsIjp7ImRpc3BsYXlOYW1lIjoiQWNtZSBXaWRnZXRzLCBMdGQuIChTYW5kYm94KSIsImNsaWVudElkIjpudWxsLCJwcml2YWN5VXJsIjoiaHR0cDovL2V4YW1wbGUuY29tL3BwIiwidXNlckFncmVlbWVudFVybCI6Imh0dHA6Ly9leGFtcGxlLmNvbS90b3MiLCJiYXNlVXJsIjoiaHR0cHM6Ly9hc3NldHMuYnJhaW50cmVlZ2F0ZXdheS5jb20iLCJhc3NldHNVcmwiOiJodHRwczovL2NoZWNrb3V0LnBheXBhbC5jb20iLCJkaXJlY3RCYXNlVXJsIjpudWxsLCJhbGxvd0h0dHAiOnRydWUsImVudmlyb25tZW50Tm9OZXR3b3JrIjp0cnVlLCJlbnZpcm9ubWVudCI6Im9mZmxpbmUiLCJ1bnZldHRlZE1lcmNoYW50IjpmYWxzZSwiYnJhaW50cmVlQ2xpZW50SWQiOiJtYXN0ZXJjbGllbnQzIiwiYmlsbGluZ0FncmVlbWVudHNFbmFibGVkIjp0cnVlLCJtZXJjaGFudEFjY291bnRJZCI6ImFjbWV3aWRnZXRzbHRkc2FuZGJveCIsImN1cnJlbmN5SXNvQ29kZSI6IlVTRCJ9LCJjb2luYmFzZUVuYWJsZWQiOmZhbHNlLCJtZXJjaGFudElkIjoiMzQ4cGs5Y2dmM2JneXcyYiIsInZlbm1vIjoib2ZmIn0=");
+var BTClient = require('react-native-braintree-xplat');
+
 
 
 
@@ -87,6 +87,8 @@ class Home extends Component {
        
         
           this.state = {
+            alreadyPaid: false,
+            usedCurrentLocation: false,
             visiblePadding: 0,
             behavior: 'position',
             progress: 0.25,
@@ -179,17 +181,69 @@ componentWillMount(){
     this.setState({visiblePadding: 0})
   }
 
+setupBraintree = () => {
 
+console.log("checking first  auth_token", this.props.auth_token);
+fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_token.json', {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Accept': 'application/json',
+                                                        'Content-Type': 'application/json',
+                                                        'X-Auth-Token': this.props.auth_token,
+                                                      },
+                                                    
+                                                    }) .then((response) => response.json())
+                                                          .then((responseJson) => {
+
+                                                            console.log("json worked for braintree token",responseJson);
+                                                            console.log("checking auth_token", this.props.auth_token);
+                                                            
+                                                            if (responseJson.success){
+                                                              console.log("checking BTC token",responseJson.token );
+                                                              BTClient.setup(responseJson.token);
+                                                               
+                                                                 
+                                                            }
+
+                                                            
+                                                          })
+
+
+  setTimeout(function () {  BTClient.showPaymentViewController().then(function(nonce) {
+    //callback after the user completes (or cancels) the flow.
+    //with the nonce, you can now pass it to your server to create a charge against the user's payment method
+    fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/save_nonce.json', {
+      method: "POST",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Auth-Token': this.props.auth_token,
+      },
+      body: JSON.stringify({payment_method_nonce: nonce})
+    }) .then((response) => response.json())
+                                                          .then((responseJson) => {
+
+                                                            console.log("json worked for saving braintree nonce",responseJson);
+                                                            
+                                                            
+                                                            
+
+                                                            
+                                                          })
+  }); }, 500);
+
+
+
+
+
+}
 
 
     componentDidMount() {
 
-//       BTClient.showPaymentViewController().then(function(nonce) {
-//   //payment succeeded, pass nonce to server
-// })
-// .catch(function(err) {
-//   //error handling
-// });
+
+      
+     
 
 
 
@@ -216,6 +270,9 @@ componentWillMount(){
                 opacity: 0
             });
         }, 900);
+
+
+        
     }
 
     getInitialState() {
@@ -276,7 +333,15 @@ componentWillMount(){
                                                           fillAlpha: 1,
                                                           fillColor: '#000000',
                                                           strokeAlpha: 1,
+                                                           annotationImage: { // optional. Marker image for type=point
+                                                                source: {
+                                                                 uri: "https://i.imgsafe.org/4a7ae8dc81.png", // required. string. Either remote image URL or the name (without extension) of a bundled image
+                                                                },
+                                                                height: 100, // required. number. Image height
+                                                                width: 60, // required. number. Image width
+                                                              },
                                                           subtitle: 'It has a rightCalloutAccessory too',
+                                                          
                                                           // rightCalloutAccessory: {
                                                           //   source: { uri: 'https://cldup.com/9Lp0EaBw5s.png' },
                                                           //   height: 50,
@@ -292,6 +357,13 @@ componentWillMount(){
                                                           fillColor: '#000000',
                                                           strokeAlpha: 1,
                                                           subtitle: 'It has a rightCalloutAccessory too',
+                                                          annotationImage: { // optional. Marker image for type=point
+                                                                source: {
+                                                                 uri: "https://i.imgsafe.org/4a7b6f2683.png", // required. string. Either remote image URL or the name (without extension) of a bundled image
+                                                                },
+                                                                height: 100, // required. number. Image height
+                                                                width: 60, // required. number. Image width
+                                                              },
                                                           // rightCalloutAccessory: {
                                                           //   source: { uri: 'https://cldup.com/9Lp0EaBw5s.png' },
                                                           //   height: 50,
@@ -302,8 +374,8 @@ componentWillMount(){
                                                         {
                                                           coordinates: overview_polyline,
                                                           type: 'polyline',
-                                                          strokeColor: '#40E0D0',
-                                                          strokeWidth: 5,
+                                                          strokeColor: '#74BFFF',
+                                                          strokeWidth: 3,
                                                           strokeAlpha: 1,
                                                           id: 'foobar'
                                                         }
@@ -333,6 +405,8 @@ componentWillMount(){
                                                           })
   }
 
+
+
    
 
 
@@ -351,7 +425,34 @@ componentWillMount(){
     uberXL() {
         this.setState({uberPoolSelect: false,uberXLSelect: true,uberXSelect: false,uberGoSelect: false});
     }
+    putLogo = () => {
+
+      return ( <Image style={{marginRight:10}} source={require('../home/half1.png')}>
+                </Image>)
+    }
+
+    checkCurrentLocationUsed = () => {
+      if (this.state.usedCurrentLocation){
+        return false
+      }
+
+      else{
+        return true
+      }
+    }
+    
     render() {
+
+
+      if (!this.state.alreadyPaid){
+
+        if(this.props.auth_token){
+
+         this.setupBraintree();
+        this.setState({alreadyPaid: true});
+        }
+        
+      }
         return (
                  
                 <View style={styles.container}>
@@ -363,7 +464,7 @@ componentWillMount(){
                         {(this.state.visible) ?
                         (<MapView ref={map => { this._map = map; }}
                             style={styles.map}
-                            
+                             styleURL={Mapbox.mapStyles.dark}   
                             rotateEnabled={true}
                             zoomEnabled={true}
                             showsUserLocation={true}
@@ -395,7 +496,11 @@ componentWillMount(){
                            } >
                                <Icon name='ios-menu' />
                            </Button>
-                           <Title>Wosyl Delivery</Title>
+                           <Title style={{marginTop:15, marginRight:10}}><Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}>
+                </Image></Title>
+
+                           
+                           
                        </Header>
                     
                      </View>
@@ -418,12 +523,18 @@ componentWillMount(){
                                 minLength={2} // minimum length of text to search
                                 autoFocus={false}
                                 fetchDetails={true}
+                                currentLocation={this.checkCurrentLocationUsed()} // Will add a 'Current location' button at the top of the predefined places list
+                                currentLocationLabel="Current location"
+
                                
                                 onPress={(data, details = null) => { 
                                   console.log("googleplaces");
                                   console.log(details);
                                   this.setState({fromLocation:details.name});
                                   this.setState({fromLatitude:details.geometry.location.lat});
+                                  if (details.name == 'Current Location'){
+                                    this.setState({usedCurrentLocation: true});
+                                  }
                                   this.setState({fromLongtitude:details.geometry.location.lng});
                                   console.log("checking from long");
                                   console.log(this.state.fromLatitude,this.state.fromLongtitude);
@@ -440,6 +551,13 @@ componentWillMount(){
                                                           fillAlpha: 1,
                                                           fillColor: '#000000',
                                                           strokeAlpha: 1,
+                                                           annotationImage: { // optional. Marker image for type=point
+                                                                source: {
+                                                                 uri: "https://i.imgsafe.org/4a5f87e60f.png", // required. string. Either remote image URL or the name (without extension) of a bundled image
+                                                                },
+                                                                height: 50, // required. number. Image height
+                                                                width: 50, // required. number. Image width
+                                                              },
                                                           subtitle: 'It has a rightCalloutAccessory too',
                                                           // rightCalloutAccessory: {
                                                           //   source: { uri: 'https://cldup.com/9Lp0EaBw5s.png' },
@@ -548,6 +666,8 @@ componentWillMount(){
                                 minLength={2} // minimum length of text to search
                                 autoFocus={false}
                                 fetchDetails={true}
+                                currentLocation={this.checkCurrentLocationUsed()} // Will add a 'Current location' button at the top of the predefined places list
+                                currentLocationLabel="Current location"
                                
                                 onPress={(data, details = null) => { 
                                   console.log("googleplaces");
@@ -556,7 +676,9 @@ componentWillMount(){
                                   this.setState({toLatitude:details.geometry.location.lat});
                                   this.setState({toLongtitude:details.geometry.location.lng});
                                    this.setState({ toCoordinates: [parseFloat(details.geometry.location.lat),parseFloat(details.geometry.location.lng) ]});
-                                  
+                                   if (details.name == 'Current Location'){
+                                    this.setState({usedCurrentLocation: true});
+                                  }
                                   console.log("checking parseFloat:");
                                   console.log(parseFloat(details.geometry.location.lat), parseFloat(details.geometry.location.lng));
                                   
@@ -647,7 +769,9 @@ componentWillMount(){
                             
                         </View>
                         <View style={{padding: 10}}>
-                        <Button rounded transparent bordered block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}}  onPress={() => {
+
+
+                        <Button rounded block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}}  onPress={() => {
                                        if (this.state.fromLatitude == 0 ){
                                            
                                         this.state.fromLatitude =  this.state.position.coords.latitude;
@@ -661,7 +785,7 @@ componentWillMount(){
                                       
                                   }
                                }
-                               underlayColor='#99d9f4'>
+                               >
                                <Text style={styles.buttonText}>Continue</Text>
                         </Button>
                         </View>
@@ -700,6 +824,7 @@ function mapStateToProps(state) {
     last_name: state.route.users.last_name,
     email: state.route.users.email,
     phone_no: state.route.users.phone_no,
+    auth_token: state.route.users.access_token,
 
     
   }

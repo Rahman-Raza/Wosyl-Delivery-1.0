@@ -159,10 +159,11 @@ module.exports = StyleSheet.create({
   headerContainer: {
     position: 'absolute',
     top: 0,
-    width: deviceWidth
+    width: deviceWidth,
   },
   iosHeader: {
-    backgroundColor: '#fff'
+     backgroundColor: 'rgba(0,0,0,0)',
+    
   },
   aHeader: {
     backgroundColor: '#fff',

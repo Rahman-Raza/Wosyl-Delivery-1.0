@@ -1,4 +1,5 @@
 
+
 'use strict';
 
 import { StyleSheet } from "react-native";
@@ -43,6 +44,43 @@ module.exports = StyleSheet.create({
     borderRadius: 0,
     backgroundColor: '#19192B'
  },
+
+ container: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "transparent",
+    },
+    buttonBar: {
+        flexDirection: "row",
+        position: "absolute",
+        bottom: 25,
+        right: 0,
+        left: 0,
+        justifyContent: "center"
+    },
+    button: {
+        padding: 10,
+        color: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#FFFFFF",
+        margin: 5
+    },
+    buttonText: {
+        color: "#FFFFFF"
+    },
+    imageGrid: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center'
+  },
+    image: {
+      justifyContent: 'center',
+    width: 100,
+    height: 100,
+    margin: 10,
+  }
  
 
 });

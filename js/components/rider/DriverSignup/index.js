@@ -2,7 +2,7 @@
 
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { View, Dimensions,StatusBar,Platform } from 'react-native';
+import { View, Dimensions,StatusBar,Platform, Image,CameraRoll} from 'react-native';
 
 import { popRoute,replaceRoute } from '../../../actions/route';
 
@@ -12,9 +12,12 @@ import { Grid, Col, Row } from 'react-native-easy-grid';
 import styles from './styles';
 import theme from '../../../themes/base-theme';
 import Modal from 'react-native-simple-modal';
+import Camera from 'react-native-camera'
+var FileUpload = require('NativeModules').FileUpload;
 import {
    AppRegistry,
    TouchableOpacity,
+   TouchableHighlight,
 } from 'react-native';
 
 var { width, height } = Dimensions.get('window');
@@ -24,6 +27,13 @@ class DriverSignup extends Component {
       super(props);
 
       this.state ={
+        photoSource: '',
+        images: [],
+        pictureTaken: false,
+        imagePath : '',
+        cameraType: Camera.constants.Type.back,
+        defaultOpen:false,
+        cameraOpen: false,
       street_name: '',
       city: '',
       state: '',
@@ -40,7 +50,56 @@ class DriverSignup extends Component {
     }
     replaceRoute(route) {
         this.props.replaceRoute(route);
+
+
     } 
+
+    getInitialState() {
+    return {
+        
+    }
+}
+
+uploadPicture = () =>{
+
+
+console.log("checking pic upload auth token", this.props.auth_token);
+console.log("checking photoSource:", this.state.photoSource);
+ var obj = {
+        uploadUrl: 'http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/upload_driver_license_image.json',
+        method: 'POST', // default 'POST',support 'POST' and 'PUT' 
+        headers: {
+          'Accept': 'application/json',
+          'X-Auth-Token': this.props.auth_token,        },
+        fields: {
+            'hello': 'world',
+        },
+        files: [
+          {
+             // optional, if none then `filename` is used instead 
+            filename: 'person.JPG', // require, file name 
+            filepath: this.state.photoSource, // require, file absoluete path 
+            filetype: 'image/JPG',
+            
+             // options, if none, will get mimetype from `filepath` extension 
+          },
+        ]
+    };
+    FileUpload.upload(obj, function(err, result) {
+      console.log('upload:', err, result);
+    })
+
+
+
+}
+
+setImagePath = (data) => {
+
+  this.setState({imagePath: data.path});
+  console.log("did take picture", data);
+  console.log("checking pic", this.state.imagePath);
+
+}
 
     componentDidMount(){
 
@@ -52,11 +111,120 @@ class DriverSignup extends Component {
     navigator.geolocation.watchPosition((position) => {
       this.setState({position});
     });
+
+    
     }
+
+    _switchCamera = () =>  {
+        var state = this.state;
+        state.cameraType = state.cameraType === Camera.constants.Type.back ? Camera.constants.Type.front : Camera.constants.Type.back;
+        this.setState(state);
+    }
+ 
+    _takePicture = () =>  {
+        this.refs.cam.capture().then((data) => this.setImagePath(data)).catch(err => console.error(err));
+            
+            this.setState({pictureTaken: true});
+        
+
+        this.setState({cameraOpen:false});
+        this.setState({defaultOpen: true});
+        this.setState({pictureTaken: true});
+
+        const fetchParams = {
+          first: 1,
+        };
+        //CameraRoll.getPhotos(fetchParams, this.storeImages, this.logImageError);
+
+        setTimeout(() => {
+     CameraRoll.getPhotos({first: 2}).done(
+        (data) =>{
+           console.log("did get picturesss",data);
+          this.setState({
+            photoSource:  data.edges[0].node.image.uri
+          });
+        },
+        (error) => {
+          console.warn(error);
+        }
+      );
+    
+  }, 700);
+
+
+
+
+      
+    }
+
+    Pics = () => {
+      this.setState({cameraOpen:true});
+      this.setState({defaultOpen: false});
+
+    }
+
+    storeImages = (data) => {
+    const assets = data.edges;
+    const images = assets.map((asset) => asset.node.image);
+    this.setState({
+      images: images,
+    });
+  }
+
+  logImageError(err) {
+    console.log(err);
+  }
+
+    startCamera = () => {
+      return (
+
+        <Camera
+                      ref="cam"
+                      style={styles.container}
+                      type={this.state.cameraType}>
+
+
+                      <View style={styles.buttonBar}>
+
+                        
+
+                          <TouchableOpacity style={styles.button} onPress={this._switchCamera}>
+                              <Text style={styles.buttonText}>Flip</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity style={styles.button} onPress={this._takePicture}>
+                              <Text style={styles.buttonText}>Take</Text>
+                          </TouchableOpacity>
+                      </View>
+                    </Camera> 
+
+
+
+              )
+    }
+
     
     
     render() {
-        return (
+
+
+      if (this.state.cameraOpen){
+        return this.startCamera();
+      }
+
+      else
+        return ( 
+                
+
+
+                    
+
+                
+              
+                  
+                  
+                    
+                  
+
                 <Container theme={theme} style={{backgroundColor: '#fff'}} >
                     <StatusBar barStyle='default' />
 
@@ -69,6 +237,9 @@ class DriverSignup extends Component {
                         </Button>
                         <Text style={Platform.OS === 'ios' ? styles.iosHeaderTitle : styles.aHeaderTitle}>Please enter the following.</Text>
                     </Header>
+
+
+
                    
 
                     <View style={{padding: 10}}>
@@ -108,6 +279,25 @@ class DriverSignup extends Component {
                             </InputGroup>
                         </View>
 
+                         <View style={styles.regBtnContain}>
+                            <Button block style={styles.regBtn} onPress={() => this.setState({cameraOpen:true})}>
+
+                               <Text style={{color: '#fff',fontWeight: '600'}}>Take License Pic</Text>
+                            </Button>
+                        </View>
+
+                        <View style={styles.regBtnContain}>
+                            <Button block style={styles.regBtn} onPress={() => this.uploadPicture()}>
+
+                               <Text style={{color: '#fff',fontWeight: '600'}}>Upload Pic</Text>
+                            </Button>
+                        </View>
+
+                       
+
+
+
+
                         <View style={styles.container}>
                           
                         </View>
@@ -117,7 +307,7 @@ class DriverSignup extends Component {
                                                       headers: {
                                                         'Accept': 'application/json',
                                                         'Content-Type': 'application/json',
-                                                        'X-Auth-Token': 'cccca0dfe53d5fdf42eeafb79ac5757e',
+                                                        'X-Auth-Token': this.props.auth_token,
                                                       },
                                                       body: JSON.stringify({
                                                         
@@ -126,15 +316,19 @@ class DriverSignup extends Component {
                                                         state: this.state.state,
                                                         zip: this.state.zip,
                                                         social_security_number: this.state.social_security_number,
-                                                        drivers_license_image: this.state.picture,
+                                                        
                                                         
 
                                                       })
                                                     }) .then((response) => response.json())
                                                           .then((responseJson) => {
-                                                            if (responseJson.success){
-                                                                 this.popRoute('home');
-                                                            }
+
+                                                            
+
+                                                            console.log("driver signup complete", responseJson);
+                                                           
+
+                                            
                                                           })
                                                           .catch((error) => {
                                                             this.setState({open: true});
@@ -152,8 +346,26 @@ class DriverSignup extends Component {
                                 <Text style={{color: '#fff',fontWeight: '600'}}>SUBMIT</Text>
                             </Button>
 
+                            {this.state.pictureTaken && 
+
+                        <View style={{padding: 10, justifyContent: 'center'}}>
+
+                        
+                        
+                          { this.state.pictureTaken && <Image style={styles.image} source={{ uri: this.state.photoSource }} /> }
+                        
+
+                            
+
+                        </View>}
+
 
                         </View> 
+
+
+               
+                    
+
                         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                                     <Modal
                                        offset={-100}
@@ -192,6 +404,34 @@ class DriverSignup extends Component {
 }
 
 
+function mapStateToProps(state) {
+
+    console.log("checkinguserset");
+    console.log(state);
+    if (state.route.users){
+        return {
+    first_name: state.route.users.first_name,
+    last_name: state.route.users.last_name,
+    email: state.route.users.email,
+    phone_no: state.route.users.phone_no,
+    auth_token: state.route.users.access_token,
+
+    
+  }
+    }
+ 
+
+    else{
+  return {
+    first_name: "first Name",
+    last_name: "lastname",
+    email: "email",
+    phone_no: "phone number",
+    
+  }
+}
+}
+
 function bindActions(dispatch){
     return {
         popRoute: () => dispatch(popRoute()),
@@ -199,4 +439,4 @@ function bindActions(dispatch){
     }
 }
 
-export default connect(null, bindActions)(DriverSignup);
+export default connect(mapStateToProps, bindActions)(DriverSignup);

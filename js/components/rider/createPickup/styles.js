@@ -32,7 +32,8 @@ module.exports = StyleSheet.create({
   },
   iosHeaderTitle: {
     fontSize: 18,
-    fontWeight: '500'
+    fontWeight: '500',
+    color: '#000'
  },
   headerContainer: {
     position: 'absolute',

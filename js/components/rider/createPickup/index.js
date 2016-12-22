@@ -6,7 +6,7 @@ import { View, Dimensions,StatusBar,Platform,  ProgressViewIOS, DeviceEventEmitt
 
 import { popRoute,replaceRoute} from '../../../actions/route';
 
-import { Container, Header, Text, Button, Icon, InputGroup, Input, Content } from 'native-base';
+import { Container, Header, Text, Button, Icon, InputGroup, Input, Content, Title} from 'native-base';
 import { Grid, Col, Row } from 'react-native-easy-grid';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import styles from './styles';
@@ -136,11 +136,13 @@ class CreatePickup extends Component {
                                                           fillColor: '#000000',
                                                           strokeAlpha: 1,
                                                           subtitle: 'It has a rightCalloutAccessory too',
-                                                          rightCalloutAccessory: {
-                                                            source: { uri: 'https://cldup.com/9Lp0EaBw5s.png' },
-                                                            height: 50,
-                                                            width: 50
-                                                          }, 
+                                                          annotationImage: { // optional. Marker image for type=point
+                                                                source: {
+                                                                 uri: "https://i.imgsafe.org/4a7ae8dc81.png", // required. string. Either remote image URL or the name (without extension) of a bundled image
+                                                                },
+                                                                height: 100, // required. number. Image height
+                                                                width: 60, // required. number. Image width
+                                                              },
                                                           id: 'marker1'
                                                         },
                                                         {
@@ -151,11 +153,13 @@ class CreatePickup extends Component {
                                                           fillColor: '#000000',
                                                           strokeAlpha: 1,
                                                           subtitle: 'It has a rightCalloutAccessory too',
-                                                          rightCalloutAccessory: {
-                                                            source: { uri: 'https://cldup.com/9Lp0EaBw5s.png' },
-                                                            height: 50,
-                                                            width: 50
-                                                          }, 
+                                                          annotationImage: { // optional. Marker image for type=point
+                                                                source: {
+                                                                 uri: "https://i.imgsafe.org/4a7b6f2683.png", // required. string. Either remote image URL or the name (without extension) of a bundled image
+                                                                },
+                                                                height: 100, // required. number. Image height
+                                                                width: 60, // required. number. Image width
+                                                              },
                                                           id: 'marker2'
                                                         },
                                                         {
@@ -351,6 +355,7 @@ this._map && this._map.setVisibleCoordinateBounds(parseFloat(this.props.fromLati
                         {(this.state.visible) ?
                         <MapView  ref={map => { this._map = map; }}
           style={styles.map}
+          styleURL={Mapbox.mapStyles.dark}
           
           initialCenterCoordinate={this.props.center}
           initialZoomLevel={10}
@@ -382,7 +387,7 @@ this._map && this._map.setVisibleCoordinateBounds(parseFloat(this.props.fromLati
                         <Button transparent  onPress={() => this.popRoute()} >
                             <Icon name='md-arrow-back' style={{fontSize: 28}} />
                         </Button>
-                        <Text style={Platform.OS === 'ios' ? styles.iosHeaderTitle : styles.aHeaderTitle}>What Item would you like delivered?</Text>
+                       <Title style={{marginTop:15, marginRight:10,color:'#000'}}> What item would you like Delivered?</Title>
                     </Header>
                     
                      </View>
@@ -412,7 +417,7 @@ this._map && this._map.setVisibleCoordinateBounds(parseFloat(this.props.fromLati
                             
                         </View>
                         <View style={{padding: 10}}>
-                       <Button rounded transparent bordered block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => {this.createPickup()}}
+                       <Button rounded  block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => {this.createPickup()}}
              underlayColor='#99d9f4'>
                     <Text style={styles.buttonText}>Next</Text>
                   </Button>

@@ -3,12 +3,12 @@ import Color from 'color';
 import {Platform} from 'react-native';
 
 module.exports = {
-    brandPrimary : "#428bca",
-    brandInfo: "#5bc0de",
-    brandSuccess: "#5cb85c",
-    brandDanger: "#d9534f",
-    brandWarning: "#f0ad4e",
-    brandSidebar: "#5ba9de",
+    brandPrimary : "#3DA000",
+    brandInfo: "#1BBFDD",
+    brandSuccess: "#1BBFDD",
+    brandDanger: "#1BBFDD",
+    brandWarning: "#1BBFDD",
+    brandSidebar: "#1BBFDD",
 
     inverseTextColor: "#fff",
     textColor: "#000",

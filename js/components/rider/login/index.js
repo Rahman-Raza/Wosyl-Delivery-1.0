@@ -14,6 +14,21 @@ import theme from '../../../themes/base-theme';
 
 var { width, height } = Dimensions.get('window');
 
+class BackgroundImage extends Component {
+
+    render() {
+        return (
+
+            <Image style={styles.backgroundImage}
+                          source={require('../login/Rectangle904.png')}>
+
+                          {this.props.children}
+             </Image>
+
+        )
+    }
+}
+
 class Login extends Component {
     
     pushNewRoute(route) {
@@ -25,27 +40,36 @@ class Login extends Component {
     } 
     render() {
         return (
-                <View style={{flex: 1}}>
+                <View >
                     <StatusBar barStyle='light-content' />
-                    <Content style={{backgroundColor: '#19192B'}}>
-                        <View style={Platform.OS === 'ios' ? styles.iosLogoContainer : styles.aLogoContainer }>
-                            <Image
-                        style={{padding:10}}
-                          source={require('../signIn/logo.png')}>
-                          </Image>
-                            <Text style={styles.logoText}>Wosyl Delivery</Text>
+                    <Content theme={theme} style={{backgroundColor: '#19192B'}}>
+                        <BackgroundImage>
+
+                    
+                            <View style={Platform.OS === 'ios' ? styles.iosLogoContainer : styles.aLogoContainer }>
+                                <Image
+                            style={{}}
+                              source={require('../login/logo1x.png')}>
+                              </Image>
+                                <Text style={styles.logoText}>Wosyl Delivery</Text>
+                            </View>
+                       
+                        
+
+                    
+
+                        <View style={{marginTop: 300, padding: 10, backgroundColor: '#fff'}}>
+                            <Grid>
+                                <Col style={{padding: 10}}>
+                                <Button rounded onPress={() => this.pushNewRoute('signIn')} block ><Text style={{color: '#fff',fontWeight: '600'}}>SIGN IN</Text></Button>
+                                </Col>
+                                <Col style={{padding: 10}}>
+                                <Button rounded onPress={() => this.pushNewRoute('register')} transparent bordered block ><Text style={{fontWeight: '600',color: '#1BBFDD'}}>REGISTER</Text></Button>
+                                </Col>
+                            </Grid>
                         </View>
+                         </BackgroundImage>
                     </Content>
-                    <View style={{padding: 10}}>
-                        <Grid>
-                            <Col style={{padding: 10}}>
-                            <Button rounded onPress={() => this.pushNewRoute('signIn')} block ><Text style={{color: '#fff',fontWeight: '600'}}>SIGN IN</Text></Button>
-                            </Col>
-                            <Col style={{padding: 10}}>
-                            <Button rounded onPress={() => this.pushNewRoute('register')} transparent bordered block ><Text style={{fontWeight: '600',color: '#428bca'}}>REGISTER</Text></Button>
-                            </Col>
-                        </Grid>
-                    </View>
                     
                 </View>
         )

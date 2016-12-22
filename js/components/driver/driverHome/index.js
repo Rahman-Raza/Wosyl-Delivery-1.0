@@ -6,14 +6,18 @@ import { connect } from 'react-redux';
 import polyline from 'polyline';
 
 import {BlurView} from 'react-native-blur';
-import ActionCable from 'react-native-actioncable'
+import ActionCable from 'react-native-actioncable';
+
+ var {CountDownText} = require('react-native-sk-countdown');
 
 
 import AwesomeButton from 'react-native-awesome-button';
 
-import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS } from 'react-native';
+import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, TouchableOpacity,Linking } from 'react-native';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
-import { Modal, TouchableHighlight} from 'react-native';
+import {  TouchableHighlight} from 'react-native';
+import Modal from 'react-native-simple-modal';
+
 
 
 import Form from 'react-native-form'
@@ -65,11 +69,13 @@ function mapStateToProps(state) {
       console.log("checking auth_token");
       console.log(state.route.users.access_token);
         return {
+          open: false,
     first_name: state.route.users.first_name,
     last_name: state.route.users.last_name,
     email: state.route.users.email,
     phone_no: state.route.users.phone_no,
     auth_token: state.route.users.access_token,
+    driver_image: state.route.users.drivers_license_image_thumb_url,
 
 
     
@@ -118,9 +124,20 @@ class driverHome extends Component {
     constructor(props) {
         super(props);
 
+         
        
         
           this.state = {
+            driver_status:'',
+            fooditems:'',
+            pickup_from: '',
+            pickup_to: '',
+            pickup_customer: '',
+            pickup_item: '',
+            pickup_notes: '',
+
+            open: false,
+            begin: false,
 
             progress: 0.25,
              isVisible: false,
@@ -169,39 +186,32 @@ class driverHome extends Component {
         this.uberGo = this.uberGo.bind(this);
         this.uberX = this.uberX.bind(this);
         this.uberXL = this.uberXL.bind(this);
+
     }
 
 
  setModalVisible (visible) {
     this.setState({modalVisible: visible});
   }
- setupSubscription() {
 
+  componentWillMount(){
 
-   var App = {};
-   console.log("checking cable auth");
-   console.log(this.props.auth_token);
-App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/cable?auth_token=' + this.props.auth_token);
+     navigator.geolocation.getCurrentPosition(
+      (position) => this.setState({position}),
+      (error) => alert(error.message),
+      {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
+    );
+    navigator.geolocation.watchPosition((position) => {
+      console.log("checking navigator", position);
+      this.setState({position});
 
-    App.comments = App.cable.subscriptions.create("WebNotificationsChannel", {
-      message_id: "message_id",
-
-      connected: function () {
-        // Timeout here is needed to make sure Subscription
-        // is setup properly, before we do any actions.
-        setTimeout(() => console.log("setting timeout"),
-                                      1000);
-        console.log("connected to cable");
-      },
-
-      received: function(data) {
-        console.log("receiving data from cable");
-        console.log(data);
-      },
-
-     
     });
+
   }
+
+
+
+
   
 
 
@@ -210,9 +220,7 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
 
 
 
-
     componentDidMount() {
-
 
 
 
@@ -225,15 +233,11 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
 
 
 
-            navigator.geolocation.getCurrentPosition(
-      (position) => this.setState({position}),
-      (error) => alert(error.message),
-      {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
-    );
-    navigator.geolocation.watchPosition((position) => {
-      this.setState({position});
+           
 
-    });
+
+
+
 
     
 
@@ -253,6 +257,15 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
                 opacity: 0
             });
         }, 900);
+
+
+
+        
+
+
+
+
+
     }
 
     getInitialState() {
@@ -271,20 +284,40 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
      }
   }
 
-  updateLocation(){
+  updateLocation =() => {
 
-  if (this.state.position){
-    console.log("found position");
-    console.log(this.state.position);
-   var update_lat = this.state.position.coords.latitude;
-    var update_long = this.state.position.coords.longitude;
-  }
+    var update_lat = 0;
+    var update_long = 0;
 
-  else{
-    var update_lat = "38.5404302";
-     var update_long = "-121.7232103";
+if (this.state.position){
 
-  }
+  
+
+
+   update_lat = this.state.position.coords.latitude;
+  update_long = this.state.position.coords.longitude;
+  console.log("did find position");
+
+}
+
+else{
+
+  
+  console.log("position doesnt exists", this.state.position);
+update_lat = 38.5404302;
+update_long = -121.7232103;
+
+
+     
+   }
+  
+  this.setState({update_lat: update_lat});
+  this.setState({update_long: update_long});
+
+   console.log("checking update position:", this.state.position);
+   console.log("checking update_long:", update_long);
+
+
 
   console.log("checking props auth");
   console.log(this.props.auth_token);
@@ -306,7 +339,8 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
                                                             console.log("checking update response");
                                                             console.log(responseJson);
                                                             if (responseJson.success){
-                                                              console.log("updating user success");
+                                                              console.log("updating gps success",responseJson);
+
                                                             }
 
                                                             else{
@@ -331,8 +365,15 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
   onUpdateUserLocation (location) {
     console.log(location)
   }
-  drawRoute(){
-    fetch('https://maps.googleapis.com/maps/api/directions/json?units=imperial&origin='+this.state.fromLatitude + ','+this.state.fromLongtitude+'&destination=' + this.state.toLatitude + ',' + this.state.toLongtitude + '&key=AIzaSyBIxUYPeN_bdWQMghHe2I62itZy2uzmm3c', {
+  drawRoute = () => {
+    console.log("checking from_latitude poly", this.state.from_latitude);
+    console.log("checking from_longitude poly", this.state.from_longitude);
+    this._map && this._map.setVisibleCoordinateBounds(this.state.update_lat, this.state.update_long, parseFloat(this.state.from_latitude), parseFloat(this.state.from_longitude), 100, 100, 100, 100);
+
+
+    fetch('https://maps.googleapis.com/maps/api/directions/json?units=imperial&origin='+this.state.update_lat+','+this.state.update_long+'&destination='+this.state.from_latitude+','+this.state.from_longitude+'&key=AIzaSyBIxUYPeN_bdWQMghHe2I62itZy2uzmm3c', {
+
+
                                                       method: 'POST',
                                                       headers: {
                                                        
@@ -350,20 +391,30 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
                                                                
 
                                                                      
-                                                                     console.log(responseJson.routes[0].overview_polyline.points);
+                                                                     // console.log(responseJson.routes[0].overview_polyline.points);
+                                                                     console.log("checking poly response", responseJson);
                                                                      var overview_polyline = polyline.decode(responseJson.routes[0].overview_polyline.points);
                                                                      console.log("overview_polyline:");
                                                                      console.log(overview_polyline);
                                                                      this.setState({overview_polyline: overview_polyline});
+                                                                     console.log("checking poly fromCoordinates", this.state.fromCoordinates);
+                                                                     console.log("checking poly toCoordinates", this.state.toCoordinates);
 
                                                                        this.setState({ annotations: [{
                                                           coordinates: this.state.fromCoordinates,
                                                           type: 'point',
-                                                          title: 'From:' + this.state.fromLocation,
+                                                          title: 'From:' + this.state.from_location,
                                                           fillAlpha: 1,
                                                           fillColor: '#000000',
                                                           strokeAlpha: 1,
                                                           subtitle: 'It has a rightCalloutAccessory too',
+                                                          annotationImage: { // optional. Marker image for type=point
+                                                                source: {
+                                                                 uri: this.props.driver_image, // required. string. Either remote image URL or the name (without extension) of a bundled image
+                                                                },
+                                                                height: 50, // required. number. Image height
+                                                                width: 50, // required. number. Image width
+                                                              },
                                                           // rightCalloutAccessory: {
                                                           //   source: { uri: 'https://cldup.com/9Lp0EaBw5s.png' },
                                                           //   height: 50,
@@ -374,7 +425,7 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
                                                         {
                                                           coordinates: this.state.toCoordinates,
                                                           type: 'point',
-                                                          title: 'To:' + this.state.toLocation,
+                                                          title: 'To:' + this.state.to_location,
                                                           fillAlpha: 1,
                                                           fillColor: '#000000',
                                                           strokeAlpha: 1,
@@ -399,6 +450,7 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
 
 
                                                         ]});
+                                                        console.log("checking annotations set", this.state.annotations);
 
                                                                       
                                                                       
@@ -420,7 +472,74 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
                                                           })
   }
 
-   
+
+
+
+
+
+   setupSubscription = () => {
+
+    this.setState({websocket: true});
+    console.log("Render");
+    console.log(this.props.first_name);
+
+    var Recieving = (info) => {
+
+      this.setState({fooditems: "allthefood"});
+
+      
+      this.setState({open: true});
+
+      this.setState({pickup_from: info.data.pickup.pickup_from});
+      this.setState({pickup_item: info.data.pickup.item});
+      this.setState({pickup_notes: info.data.pickup.notes});
+      this.setState({pickup_id: info.data.pickup.id});
+       
+      this.setState({from_latitude: info.data.pickup.from_latitude});
+      this.setState({from_longitude: info.data.pickup.from_longitude});
+       this.setState({to_location: info.data.pickup.pickup_from});
+      this.setState({to_latitude: info.data.pickup.to_latitude});
+      this.setState({to_longitude: info.data.pickup.to_longitude});
+      this.setState({ toCoordinates: [parseFloat(info.data.pickup.from_latitude),parseFloat(info.data.pickup.from_longitude) ]});
+      this.setState({ fromCoordinates: [this.state.update_lat, this.state.update_long]});
+       this.setState({from_location: "My Location"});
+       
+      
+ 
+
+
+      
+  }
+
+    var App = {};
+    console.log("checking cable auth");
+    console.log(this.props.auth_token);
+    App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/cable?auth_token=' + this.props.auth_token);
+
+    App.comments = App.cable.subscriptions.create("WebNotificationsChannel", {
+        message_id: "message_id",
+
+        connected: function () {
+          // Timeout here is needed to make sure Subscription
+          // is setup properly, before we do any actions.
+          setTimeout(() => console.log("setting timeout"),
+                                        1000);
+          console.log("connected to cable for good");
+              
+        },
+
+        received: function(data) {
+          console.log("heres the data", data);
+      Recieving(data);
+
+      
+          
+
+        },
+
+       
+      });
+   }
 
 
     onDidFocus(){
@@ -441,9 +560,87 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
 
     onFinishLoadingMap =  () => {
       this.updateLocation();
-      this.setupSubscription();
-  };
+
+      if(!this.state.websocket){
+
+  this.setupSubscription();
+      }
+}
+
+AcceptPickup = (accept) => {
+
+  console.log("checking choice",accept);
+  var choice = '';
+
+  if (accept){
+    
+  choice = "accepted";
+  this.drawRoute();
+
+  }
+
+  else{
+    choice = "rejected";
+    this.setState({open:false});
+  }
+
+  console.log("checking state.pickup_id", this.state.pickup_id);
+  console.log("checking state.driver_status", choice);
+  console.log("checking this.props.auth_token", this.props.auth_token);
+  this.setState({begin: true});
+
+  
+
+
+
+
+  fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/' +this.state.pickup_id+'/process_driver.json' , {
+                                                        method: 'POST',
+                                                        headers: {
+                                                          'Accept': 'application/json',
+                                                          'Content-Type': 'application/json',
+                                                          'X-Auth-Token': this.props.auth_token,
+                                                        },
+                                                        body: JSON.stringify({
+                                                          
+                                                         driver_status: choice,
+                                                        })
+                                                      }) .then((response) => response.json())
+                                                            .then((responseJson) => {
+                                                           console.log("heres the response for choice", responseJson);
+
+                                                            
+                                                            });
+
+
+      
+
+}
+
+LoadRoute = () =>{
+
+
+    this.setState({begin: false});
+  this.setState({open: false});
+
+
+
+var url = 'http://maps.apple.com/?saddr='+this.state.update_lat+','+this.state.update_long+'&'+'daddr='+this.state.from_latitude+','+this.state.from_longitude;
+      console.log("checking apple route",url);
+
+    Linking.openURL(url).catch(err => console.error('An error occurred', err));
+
+
+
+
+}
+
+      
+
     render() {
+
+
+
         return (
                  
                 <View style={styles.container}>
@@ -491,6 +688,63 @@ App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.a
                        </Header>
                     
                      </View>
+                    
+                     {this.state.open && 
+
+                     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom:150, backgroundColor: '#000', opacity: .5}}>
+                                   
+                                       
+                                          <Text style={{fontSize: 20, marginBottom: 10, color: '#fff'}}>Incoming Pickup Request</Text>
+
+                                           <View>
+
+                                            <CountDownText
+                                                style={{textAlign: 'center',color: 'white',fontSize: 20}}
+                                                countType='seconds' // 计时类型：seconds / date 
+                                                auto={true} // 自动开始 
+                                                afterEnd={() => {this.AcceptPickup(false) }} // 结束回调 
+                                                timeLeft={60} // 正向计时 时间起点为0秒 
+                                                step={-1} // 计时步长，以秒为单位，正数则为正计时，负数为倒计时 
+                                                startText='Begin' // 开始的文本 
+                                                endText='Time ran out' // 结束的文本 
+                                                intervalText={(sec) => sec + ' Seconds left'}/>
+                                            </View>
+                                           <Text style={{fontSize: 14, marginBottom: 10, marginTop: 10, color: '#fff'}}>Pickup Location: {this.state.pickup_from}</Text>
+                                           <Text style={{fontSize: 14, marginBottom: 10, marginTop: 10, color: '#fff'}}>Pickup Item: {this.state.pickup_item}</Text>
+                                           <Text style={{fontSize: 14, marginBottom: 10, marginTop: 10, color: '#fff'}}>Notes: {this.state.pickup_notes}</Text>
+                                           <Grid>
+                                                <Col style={{padding: 10}}>
+
+                                                    <Button rounded onPress={() => this.AcceptPickup(true)} >
+
+                                                      <Text style={{fontWeight: '600',color: '#fff'}}>Accept Pickup</Text>
+                                                    </Button>
+
+                                                    {this.state.begin &&
+
+                                                      <Button rounded onPress={() => this.LoadRoute()} >
+
+                                                      <Text style={{fontWeight: '600',color: '#fff'}}>Start Navigation</Text>
+                                                    </Button>
+
+
+
+
+                                                    }
+                                                </Col>
+                                                <Col style={{padding: 10}}>
+                                                  <Button rounded onPress={() => this.AcceptPickup(false) } >
+
+                                                      <Text style={{fontWeight: '600',color: '#fff'}}>Decline Pickup</Text>
+                                                  </Button>
+                                                </Col>
+                                            </Grid>
+                                          
+                                           
+                                          
+                                       
+                                    
+                                </View>}
         
                   
                  

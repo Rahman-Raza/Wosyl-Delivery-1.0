@@ -11,7 +11,7 @@ module.exports = StyleSheet.create({
     
   
   iosHeader: {
-    backgroundColor: '#fff',
+    
   },
   aHeader: {
     backgroundColor: '#fff',
@@ -19,15 +19,21 @@ module.exports = StyleSheet.create({
     elevation: 3,
     paddingTop: 25
   },
+   backgroundImage: {
+       
+
+    },
   iosHeaderTitle: {
     fontSize: 18,
-    fontWeight: '500'
+    fontWeight: '500',
+    color: '#fff'
  },
  aHeaderTitle: {
     fontSize: 18,
     fontWeight: '500',
     lineHeight: 26,
-    marginTop: -5
+    marginTop: -5,
+    color: '#fff'
  },
  orText: {
     color: '#333',
@@ -37,6 +43,7 @@ module.exports = StyleSheet.create({
  regBtnContain: {
     paddingVertical: 20,
     paddingHorizontal: 10
+
  },
  regBtn: {
     borderRadius: 0,
