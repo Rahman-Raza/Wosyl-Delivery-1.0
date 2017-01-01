@@ -60,4 +60,24 @@ module.exports = StyleSheet.create({
     margin: 20,
     marginTop: -10
   },
+  cardSelect: {
+    margin: 20,
+    marginLeft: 20,
+    padding: 10,
+    marginTop: 0,
+    paddingLeft: 0
+  },
+  payCard: {
+    flexDirection: 'row',
+    paddingLeft: 20,
+    marginTop: -10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc'
+  },
+  paytmIcon: {
+    width: 35,
+    height: 13,
+    padding: 5,
+    paddingTop: 15
+  },
 });

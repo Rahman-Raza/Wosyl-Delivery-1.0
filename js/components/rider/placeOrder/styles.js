@@ -11,7 +11,7 @@ module.exports = StyleSheet.create({
     
   
   iosHeader: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(0,0,0,0)',
     paddingTop: 40
   },
   aHeader: {
@@ -22,7 +22,8 @@ module.exports = StyleSheet.create({
   },
   iosHeaderTitle: {
     fontSize: 18,
-    fontWeight: '500'
+    fontWeight: '500',
+    color:'#fff',
  },
  aHeaderTitle: {
     fontSize: 18,
@@ -54,9 +55,8 @@ module.exports = StyleSheet.create({
   },
   buttonText2: {
     fontSize: 24,
-    color: 'black',
+    color: 'white',
     alignSelf: 'center',
-    marginTop: 20,
     marginBottom: 20
   },
   formContainer: {

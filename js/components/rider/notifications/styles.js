@@ -42,6 +42,12 @@ module.exports = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600'
   },
+  contentText: {
+    textAlign: 'center',
+    color: '#000',
+    fontSize: 18,
+    fontWeight: '600'
+  },
   shareText: {
     textAlign: 'center',
     margin: 40,

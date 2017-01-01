@@ -72,12 +72,12 @@ console.log("checking photoSource:", this.state.photoSource);
           'Accept': 'application/json',
           'X-Auth-Token': this.props.auth_token,        },
         fields: {
-            'hello': 'world',
+            
         },
         files: [
           {
              // optional, if none then `filename` is used instead 
-            filename: 'person.JPG', // require, file name 
+            filename: 'drivers_license_image', // require, file name 
             filepath: this.state.photoSource, // require, file absoluete path 
             filetype: 'image/JPG',
             
@@ -122,7 +122,7 @@ setImagePath = (data) => {
     }
  
     _takePicture = () =>  {
-        this.refs.cam.capture().then((data) => this.setImagePath(data)).catch(err => console.error(err));
+        this.refs.cam.capture().then((data) => setTimeout(() => {this.setImagePath(data)},1000)).catch(err => console.error(err));
             
             this.setState({pictureTaken: true});
         
@@ -149,7 +149,8 @@ setImagePath = (data) => {
         }
       );
     
-  }, 700);
+  }, 1500);
+        setTimeout(() => {this.uploadPicture()}, 2000);
 
 
 
@@ -235,7 +236,7 @@ setImagePath = (data) => {
                         <Button transparent  onPress={() => this.popRoute()} >
                             <Icon name='md-arrow-back' style={{fontSize: 28}} />
                         </Button>
-                        <Text style={Platform.OS === 'ios' ? styles.iosHeaderTitle : styles.aHeaderTitle}>Please enter the following.</Text>
+                        <Text style={{ fontSize: 18,fontWeight: '500', color:'#000',}}>Please enter the following.</Text>
                     </Header>
 
 
@@ -279,6 +280,25 @@ setImagePath = (data) => {
                             </InputGroup>
                         </View>
 
+                        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                                    <Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.open}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({open: false})}
+                                       style={{alignItems: 'center',}}>
+                                       
+                                          <TouchableOpacity
+                                             style={{margin: 5, marginBottom:50}}
+                                             onPress={() => this.setState({open: false})}>
+                                            <Text style={{fontSize: 20, marginBottom: 10}}>Please enter all fields.</Text>
+                                          </TouchableOpacity>
+                                       
+                                    </Modal>
+                         </View>
+
                          <View style={styles.regBtnContain}>
                             <Button block style={styles.regBtn} onPress={() => this.setState({cameraOpen:true})}>
 
@@ -286,12 +306,7 @@ setImagePath = (data) => {
                             </Button>
                         </View>
 
-                        <View style={styles.regBtnContain}>
-                            <Button block style={styles.regBtn} onPress={() => this.uploadPicture()}>
-
-                               <Text style={{color: '#fff',fontWeight: '600'}}>Upload Pic</Text>
-                            </Button>
-                        </View>
+                        
 
                        
 
@@ -301,8 +316,7 @@ setImagePath = (data) => {
                         <View style={styles.container}>
                           
                         </View>
-                        <View style={styles.regBtnContain}>
-                            <Button onPress={() => fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/driver_sign_up.json', {
+                        <View style={styles.regBtnContain}>{this.state.pictureTaken&& <Button onPress={() => fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/driver_sign_up.json', {
                                                       method: 'POST',
                                                       headers: {
                                                         'Accept': 'application/json',
@@ -316,6 +330,7 @@ setImagePath = (data) => {
                                                         state: this.state.state,
                                                         zip: this.state.zip,
                                                         social_security_number: this.state.social_security_number,
+                                                        drivers_license_image: this.state.photoSource,
                                                         
                                                         
 
@@ -326,6 +341,11 @@ setImagePath = (data) => {
                                                             
 
                                                             console.log("driver signup complete", responseJson);
+                                                            if (responseJson.success){
+
+                                                              this.popRoute()
+
+                                                            }
                                                            
 
                                             
@@ -344,11 +364,9 @@ setImagePath = (data) => {
 
                                                 }    block style={styles.regBtn}>
                                 <Text style={{color: '#fff',fontWeight: '600'}}>SUBMIT</Text>
-                            </Button>
+                            </Button>}{this.state.pictureTaken && 
 
-                            {this.state.pictureTaken && 
-
-                        <View style={{padding: 10, justifyContent: 'center'}}>
+                        <View style={{padding: 10, justifyContent: 'center', alignItems: 'center'}}>
 
                         
                         
@@ -366,26 +384,7 @@ setImagePath = (data) => {
                
                     
 
-                        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-                                    <Modal
-                                       offset={-100}
-                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
-                                       closeOnTouchOutside={true}
-                                       open={this.state.open}
-                                       modalDidOpen={() => console.log('modal did open')}
-                                       modalDidClose={() => this.setState({open: false})}
-                                       style={{alignItems: 'center'}}>
-                                       <View>
-                                          <Text style={{fontSize: 20, marginBottom: 10}}>Please Try Again</Text>
-                                          
-                                          <TouchableOpacity
-                                             style={{margin: 5}}
-                                             onPress={() => this.setState({open: false})}>
-                                             <Text>Close modal</Text>
-                                          </TouchableOpacity>
-                                       </View>
-                                    </Modal>
-                         </View>
+                        
                     </View>
               </Container>
                

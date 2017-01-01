@@ -347,7 +347,7 @@ this._map && this._map.setVisibleCoordinateBounds(parseFloat(this.props.fromLati
       console.log(this.props.center);
         return (
                 <View style={styles.container}>
-                  <StatusBar barStyle='default' />
+                  <StatusBar barStyle='light-content' />
                   <Content theme={theme}>
                   </Content>
 
@@ -385,9 +385,9 @@ this._map && this._map.setVisibleCoordinateBounds(parseFloat(this.props.fromLati
                   <View style={styles.headerContainer}>
                        <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
                         <Button transparent  onPress={() => this.popRoute()} >
-                            <Icon name='md-arrow-back' style={{fontSize: 28}} />
+                            <Icon name='md-arrow-back' style={{fontSize: 28,color: 'white'}} />
                         </Button>
-                       <Title style={{marginTop:15, marginRight:10,color:'#000'}}> What item would you like Delivered?</Title>
+                        <Title style={{marginTop:15, marginRight:10,color:'white'}}> <Text style={styles.iosHeaderTitle}>What item would you like Delivered? </Text></Title>
                     </Header>
                     
                      </View>
@@ -416,11 +416,12 @@ this._map && this._map.setVisibleCoordinateBounds(parseFloat(this.props.fromLati
                             
                             
                         </View>
+                        
                         <View style={{padding: 10}}>
-                       <Button rounded  block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => {this.createPickup()}}
-             underlayColor='#99d9f4'>
-                    <Text style={styles.buttonText}>Next</Text>
-                  </Button>
+                          <Button rounded  block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => {this.createPickup()}}
+                          underlayColor='#99d9f4'>
+                            <Text style={styles.buttonText}>Next</Text>
+                          </Button>
                         </View>
                         
                      </View>

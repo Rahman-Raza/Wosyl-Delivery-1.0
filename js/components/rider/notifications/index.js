@@ -39,33 +39,22 @@ class Notifications extends Component {
                     <Content style={styles.container}>
                         
                             <Text style={styles.contentHeading}> 
-                                IN CASE YOU DIDNT KNOW
+                                These restuanrants use Wosyl
                             </Text>
                             <View style={{padding: 20}}>
                                 <Card>
                                     <CardItem style={{padding: 3}}>
-                                        <Image source={require('../../../../images/taxi1.jpg')} style={styles.notCard} />
+                                        <Image source={require('../notifications/volare.png')} style={styles.notCard} />
                                     </CardItem>
+                                   <CardItem style={{padding: 3}}>
+                                    <Text style={styles.contextText}> 
+                                        456 Haight st San Francisco, CA
+                                    </Text>
+                                 </CardItem>
+
                                 </Card>
                             </View>
-                            <View style={{padding: 20,paddingTop: 0}}>
-                                <Card>
-                                    <CardItem style={{padding: 3}}>
-                                        <Image source={require('../../../../images/taxi2.jpg')} style={styles.notCard} />
-                                    </CardItem>
-                                </Card>
-                            </View>
-                            <View style={{padding: 20,paddingTop: 0}}>
-                                <Card>
-                                    <CardItem style={{padding: 3}}>
-                                        <View style={{backgroundColor: '#24BCD9'}}>
-                                            <Text style={styles.shareText}>
-                                                SHARE AND SAVE
-                                            </Text>
-                                        </View>
-                                    </CardItem>
-                                </Card>
-                            </View>
+                            
                     </Content>
                 </Container>
         )

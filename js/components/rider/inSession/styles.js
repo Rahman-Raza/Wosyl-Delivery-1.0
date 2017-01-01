@@ -156,7 +156,7 @@ module.exports = StyleSheet.create({
     width: deviceWidth
   },
   iosHeader: {
-    backgroundColor: '#fff'
+    backgroundColor: 'rgba(0,0,0,0)',
   },
   aHeader: {
     backgroundColor: '#fff',

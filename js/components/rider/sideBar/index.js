@@ -33,9 +33,29 @@ class SideBar extends Component {
     list: React.PropTypes.arrayOf(React.PropTypes.string),
   }
 
-    navigateTo(route) {
+navigateTo2(route) {
         this.props.closeDrawer();
         this.props.replaceOrPushRoute(route);
+    }
+    navigateTo(route) {
+        this.props.closeDrawer();
+
+        if (route == 'home'){
+
+                this.props.replaceOrPushRoute('home');
+        }
+
+        else{
+
+
+            if (this.props.is_driver_verified){
+                this.props.replaceOrPushRoute('driverHome');
+            }
+
+            else{
+                this.props.replaceOrPushRoute('DriverSignup');
+            }
+        }
     }
     resetRoute(route) {
         this.props.closeDrawer();
@@ -58,25 +78,27 @@ class SideBar extends Component {
                             </ListItem>
                         </List>
                         <List  foregroundColor={'white'} style={styles.Bg} >
-                            <ListItem button onPress={() => this.navigateTo('payment')} iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
+                            <ListItem button onPress={() => this.navigateTo2('home')} iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
+                                <Icon name='ios-home'  style={Platform.OS === 'ios' ? styles.iosSidebarIcons : styles.aSidebarIcons} />
+                                <Text style={styles.linkText} >Home</Text>
+                            </ListItem>
+                            <ListItem button onPress={() => this.navigateTo2('history')}  iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
+                                <Icon name='ios-keypad-outline'  style={Platform.OS === 'ios' ? styles.iosSidebarIcons : styles.aSidebarIcons} />
+                                <Text style={styles.linkText}>Orders</Text>
+                            </ListItem>
+                            <ListItem button onPress={() => this.navigateTo2('notifications')}  iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
+                                <Icon name='ios-notifications' style={Platform.OS === 'ios' ? styles.iosSidebarIcons : styles.aSidebarIcons} />
+                                <Text style={styles.linkText}>Restaurants</Text>
+                            </ListItem>
+                            
+                           
+                            <ListItem button onPress={() => this.navigateTo2('payment')} iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
                                 <Icon name='ios-card'  style={Platform.OS === 'ios' ? styles.iosSidebarIcons : styles.aSidebarIcons} />
                                 <Text style={styles.linkText} >Payment</Text>
                             </ListItem>
-                            <ListItem button onPress={() => this.navigateTo('history')}  iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
-                                <Icon name='ios-keypad-outline'  style={Platform.OS === 'ios' ? styles.iosSidebarIcons : styles.aSidebarIcons} />
-                                <Text style={styles.linkText}>History</Text>
-                            </ListItem>
-                            <ListItem button onPress={() => this.navigateTo('notifications')}  iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
-                                <Icon name='ios-notifications' style={Platform.OS === 'ios' ? styles.iosSidebarIcons : styles.aSidebarIcons} />
-                                <Text style={styles.linkText}>Notifications</Text>
-                            </ListItem>
-                            
-                            <ListItem button onPress={() => this.resetRoute('login')} iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
+                             <ListItem button onPress={() => this.resetRoute('login')} iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
                                 <Icon name='ios-power' style={Platform.OS === 'ios' ? styles.iosSidebarIcons : styles.aSidebarIcons} />
                                 <Text style={[styles.linkText,{fontWeight: '700'}]}>SIGN OUT</Text>
-                            </ListItem>
-                            <ListItem button onPress={() => this.navigateTo('home')} style={Platform.OS === 'android' ? styles.aAboutlink : styles.iosAboutlink} >
-                                <Text style={{color: '#999'}}>About</Text>
                             </ListItem>
 
 
@@ -122,6 +144,7 @@ function mapStateToProps(state) {
     last_name: state.route.users.last_name,
     email: state.route.users.email,
     phone_no: state.route.users.phone_no,
+    is_driver_verified: state.route.users.is_driver_verified,
 
     
   }

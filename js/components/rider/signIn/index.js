@@ -168,7 +168,7 @@ class SignIn extends Component {
 
                                                                     if(responseJson.user.is_driver_verified){
                                                                       console.log("state.userDetail", this.state.userDetail);
-                                                                      this.replaceRoute('driverHome',this.state.userDetail);
+                                                                      this.replaceRoute('home',this.state.userDetail);
 
                                                                     }
 

@@ -22,7 +22,7 @@ import Modal from 'react-native-simple-modal';
 
 import Form from 'react-native-form'
 
-import { pushNewRoute } from '../../../actions/route';
+import { pushNewRoute, replaceOrPushRoute } from '../../../actions/route';
 import { createPickup } from '../../../actions/route';
 import { openDrawer } from '../../../actions/drawer';
 
@@ -47,6 +47,7 @@ const LONGITUDE = 77.586234;
 const LATITUDE_DELTA = 0.0722;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const SPACE = 0.01;
+var App = {};
 
 
 
@@ -104,6 +105,46 @@ class driverHome extends Component {
        }
 
 
+    setupSubscription = () => {
+      this.setState({websocket:true});
+      
+       var RecievingHere = (data) => {
+
+        this.Recieving(data);
+
+      }
+    console.log("checking cable auth");
+    console.log(this.props.auth_token);
+    App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/cable?auth_token=' + this.props.auth_token);
+
+    App.comments = App.cable.subscriptions.create("WebNotificationsChannel", {
+        message_id: "message_id",
+
+        connected: function () {
+          // Timeout here is needed to make sure Subscription
+          // is setup properly, before we do any actions.
+          setTimeout(() => console.log("setting timeout"),
+                                        1000);
+          console.log("connected to cable for good");
+              
+        },
+
+        received: function(data) {
+          console.log("heres the data for the driver socket", data);
+          
+          if (!(data.data.type == "pickup_session_finished")){
+          RecievingHere(data);
+        }
+
+      
+          
+
+        },
+
+       
+      });
+  }
+
  
 
 
@@ -128,6 +169,11 @@ class driverHome extends Component {
        
         
           this.state = {
+            itemAccepted: false,
+            inDelivery: false,
+            pickopen: false,
+            accepted: false,
+            itemPickupConfirmed: false,
             driver_status:'',
             fooditems:'',
             pickup_from: '',
@@ -204,6 +250,9 @@ class driverHome extends Component {
     navigator.geolocation.watchPosition((position) => {
       console.log("checking navigator", position);
       this.setState({position});
+      this.updateLocation();
+      this.subscribeLocation(position);
+
 
     });
 
@@ -477,20 +526,21 @@ update_long = -121.7232103;
 
 
 
-   setupSubscription = () => {
+  
 
-    this.setState({websocket: true});
-    console.log("Render");
-    console.log(this.props.first_name);
+    
 
-    var Recieving = (info) => {
+   Recieving = (info) => {
 
       this.setState({fooditems: "allthefood"});
 
-      
-      this.setState({open: true});
+      if (!this.state.inDelivery){
+        this.setState({pickopen: true});
+      }
+
 
       this.setState({pickup_from: info.data.pickup.pickup_from});
+       this.setState({pickup_to: info.data.pickup.pickup_to});
       this.setState({pickup_item: info.data.pickup.item});
       this.setState({pickup_notes: info.data.pickup.notes});
       this.setState({pickup_id: info.data.pickup.id});
@@ -511,35 +561,21 @@ update_long = -121.7232103;
       
   }
 
-    var App = {};
-    console.log("checking cable auth");
-    console.log(this.props.auth_token);
-    App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/cable?auth_token=' + this.props.auth_token);
+  subscribeLocation = (position) => {
 
-    App.comments = App.cable.subscriptions.create("WebNotificationsChannel", {
-        message_id: "message_id",
 
-        connected: function () {
-          // Timeout here is needed to make sure Subscription
-          // is setup properly, before we do any actions.
-          setTimeout(() => console.log("setting timeout"),
-                                        1000);
-          console.log("connected to cable for good");
-              
-        },
+    if (this.state.pickup_id){
 
-        received: function(data) {
-          console.log("heres the data", data);
-      Recieving(data);
 
-      
-          
+    App.comments.perform('WebNotificationsChannel', 'update_drivers_location',{pickup_id: this.state.pickup_id, latitude:position.coords.latitude, longitude:position.coords.longitude});
+    }
 
-        },
+  }
 
-       
-      });
-   }
+   
+
+
+  
 
 
     onDidFocus(){
@@ -563,7 +599,9 @@ update_long = -121.7232103;
 
       if(!this.state.websocket){
 
-  this.setupSubscription();
+        this.setupSubscription();
+
+  
       }
 }
 
@@ -575,24 +613,28 @@ AcceptPickup = (accept) => {
   if (accept){
     
   choice = "accepted";
+
+  this.setState({inDelivery: true});
+  this.setState({pickopen:false});
+  this.setState({accepted: true});
+  this.setState({itemAccepted:true});
+
   this.drawRoute();
+  
 
   }
 
   else{
     choice = "rejected";
-    this.setState({open:false});
+    this.setState({pickopen:false});
+    this.setState({annotations: []});
+    this.setState({inDelivery: false});
   }
 
   console.log("checking state.pickup_id", this.state.pickup_id);
   console.log("checking state.driver_status", choice);
   console.log("checking this.props.auth_token", this.props.auth_token);
   this.setState({begin: true});
-
-  
-
-
-
 
   fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/' +this.state.pickup_id+'/process_driver.json' , {
                                                         method: 'POST',
@@ -621,7 +663,7 @@ LoadRoute = () =>{
 
 
     this.setState({begin: false});
-  this.setState({open: false});
+ 
 
 
 
@@ -634,6 +676,90 @@ var url = 'http://maps.apple.com/?saddr='+this.state.update_lat+','+this.state.u
 
 
 }
+LoadFinalRoute = () =>{
+
+
+    this.setState({begin: false});
+ 
+
+
+
+var url = 'http://maps.apple.com/?saddr='+this.state.update_lat+','+this.state.update_long+'&'+'daddr='+this.state.to_latitude+','+this.state.to_longitude;
+      console.log("checking apple route",url);
+
+    Linking.openURL(url).catch(err => console.error('An error occurred', err));
+
+
+
+
+}
+
+
+
+cofirmItemPickedUp = (confirm) => {
+
+  this.setState({itemPickupConfirmed: true});
+  this.setState({itemAccepted: false});
+
+  fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/' +this.state.pickup_id+'/set_item_pickedup.json' , {
+                                                        method: 'POST',
+                                                        headers: {
+                                                          'Accept': 'application/json',
+                                                          'Content-Type': 'application/json',
+                                                          'X-Auth-Token': this.props.auth_token,
+                                                        },
+                                                        body: JSON.stringify({
+                                                          
+                                                         
+                                                        })
+                                                      }) .then((response) => response.json())
+                                                            .then((responseJson) => {
+                                                           console.log("heres the response for setting item picked up", responseJson);
+
+                                                            
+                                                            });
+
+
+}
+
+confirmItemDroppedOff = (confirm) =>{
+  console.log("confirm item completed");
+  this.setState({accepted: false});
+  this.setState({itemPickupConfirmed:false});
+  this.setState({itemAccepted: false});
+  this.setState({annotations: []});
+  this.setState({inDelivery:false});
+
+
+
+  fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/' +this.state.pickup_id+'/finish_pickup.json' , {
+                                                        method: 'POST',
+                                                        headers: {
+                                                          'Accept': 'application/json',
+                                                          'Content-Type': 'application/json',
+                                                          'X-Auth-Token': this.props.auth_token,
+                                                        },
+                                                        body: JSON.stringify({
+                                                          
+                                                         
+                                                        })
+                                                      }) .then((response) => response.json())
+                                                            .then((responseJson) => {
+                                                           console.log("heres the response for finishing pickup", responseJson);
+
+                                                            
+                                                            });
+
+
+
+}
+
+driverModeSwitch = () => {
+
+  this.props.replaceOrPushRoute('home');
+
+}
+
 
       
 
@@ -647,6 +773,8 @@ var url = 'http://maps.apple.com/?saddr='+this.state.update_lat+','+this.state.u
                   <StatusBar barStyle='default' />
                   <Content theme={theme}>
                   </Content>
+
+
 
                   <View style={styles.map}>
                         {(this.state.visible) ?
@@ -684,14 +812,24 @@ var url = 'http://maps.apple.com/?saddr='+this.state.update_lat+','+this.state.u
                            } >
                                <Icon name='ios-menu' />
                            </Button>
-                           <Title>Wosyl Delivery</Title>
+                           <Title>Wosyl Driver Mode</Title>
                        </Header>
                     
                      </View>
-                    
-                     {this.state.open && 
 
-                     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom:150, backgroundColor: '#000', opacity: .5}}>
+                     <View style={{justifyContent: 'center', alignItems: 'center',marginBottom:600, marginLeft:250}}> 
+                        <Switch
+                          onValueChange={(value) => this.driverModeSwitch()}
+                          style={{marginBottom: 10}}
+                          value={true} />
+                        
+                      </View>
+
+                     
+                    
+                     {this.state.pickopen && 
+
+                     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom:120,  backgroundColor: '#000', opacity: .8}}>
                                    
                                        
                                           <Text style={{fontSize: 20, marginBottom: 10, color: '#fff'}}>Incoming Pickup Request</Text>
@@ -710,6 +848,7 @@ var url = 'http://maps.apple.com/?saddr='+this.state.update_lat+','+this.state.u
                                                 intervalText={(sec) => sec + ' Seconds left'}/>
                                             </View>
                                            <Text style={{fontSize: 14, marginBottom: 10, marginTop: 10, color: '#fff'}}>Pickup Location: {this.state.pickup_from}</Text>
+                                           <Text style={{fontSize: 14, marginBottom: 10, marginTop: 10, color: '#fff'}}>Dropoff Location: {this.state.pickup_to}</Text>
                                            <Text style={{fontSize: 14, marginBottom: 10, marginTop: 10, color: '#fff'}}>Pickup Item: {this.state.pickup_item}</Text>
                                            <Text style={{fontSize: 14, marginBottom: 10, marginTop: 10, color: '#fff'}}>Notes: {this.state.pickup_notes}</Text>
                                            <Grid>
@@ -720,23 +859,57 @@ var url = 'http://maps.apple.com/?saddr='+this.state.update_lat+','+this.state.u
                                                       <Text style={{fontWeight: '600',color: '#fff'}}>Accept Pickup</Text>
                                                     </Button>
 
-                                                    {this.state.begin &&
-
-                                                      <Button rounded onPress={() => this.LoadRoute()} >
-
-                                                      <Text style={{fontWeight: '600',color: '#fff'}}>Start Navigation</Text>
-                                                    </Button>
-
-
-
-
-                                                    }
+                                                   
                                                 </Col>
                                                 <Col style={{padding: 10}}>
                                                   <Button rounded onPress={() => this.AcceptPickup(false) } >
 
                                                       <Text style={{fontWeight: '600',color: '#fff'}}>Decline Pickup</Text>
                                                   </Button>
+                                                </Col>
+                                            </Grid>
+                                          
+                                           
+                                          
+                                       
+                                    
+                                </View>}{this.state.accepted && 
+
+                     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center',marginBottom:120, backgroundColor: '#000', opacity: .8}}>
+                                   
+                                       
+                                          <Text style={{fontSize: 20, marginBottom: 10, color: '#fff'}}>Current Pickup</Text>
+
+                                           <View>
+
+                                            
+                                            </View>
+                                           {this.state.itemAccepted && <Text style={{fontSize: 14, marginBottom: 10, marginTop: 10, color: '#fff'}}>Pickup Location: {this.state.pickup_from}</Text>}{this.state.itemPickupConfirmed && <Text style={{fontSize: 14, marginBottom: 10, marginTop: 10, color: '#fff'}}>Drop Off Location: {this.state.pickup_to}</Text>}
+                                           <Text style={{fontSize: 14, marginBottom: 10, marginTop: 10, color: '#fff'}}>Item: {this.state.pickup_item}</Text>
+                                           <Text style={{fontSize: 14, marginBottom: 10, marginTop: 10, color: '#fff'}}>Notes: {this.state.pickup_notes}</Text>
+                                           <Grid>
+                                                
+                                                <Col style={{padding: 10}}>{this.state.itemAccepted && <Button rounded onPress={() => this.cofirmItemPickedUp(true) } >
+
+                                                      <Text style={{fontWeight: '600',color: '#fff'}}>Confirm Pickup</Text>
+                                                  </Button>}{this.state.itemPickupConfirmed && <Button rounded onPress={() => this.confirmItemDroppedOff(false) } >
+
+                                                      <Text style={{fontWeight: '600',color: '#fff'}}>Confirm Delivery</Text>
+                                                  </Button>}</Col>
+                                                  <Col style={{padding: 10}}>{this.state.itemAccepted &&<Button rounded onPress={() => this.LoadRoute()} >
+
+                                                      <Text style={{fontWeight: '600',color: '#fff'}}>Start Navigation</Text>
+                                                    </Button>}{this.state.itemPickupConfirmed &&<Button rounded onPress={() => this.LoadFinalRoute()} >
+
+                                                      <Text style={{fontWeight: '600',color: '#fff'}}>Start Navigation</Text>
+                                                    </Button>}
+
+
+
+
+
+
+                                                    
                                                 </Col>
                                             </Grid>
                                           

@@ -53,7 +53,7 @@ class placeOrder extends Component {
     
     render() {
         return (
-                <Container theme={theme} style={{backgroundColor: '#fff'}} >
+                <Container theme={theme} style={{backgroundColor: '#000'}} >
                     <StatusBar barStyle='default' />
 
                     
@@ -61,9 +61,9 @@ class placeOrder extends Component {
 
                     <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
                         <Button transparent  onPress={() => this.popRoute()} >
-                            <Icon name='md-arrow-back' style={{fontSize: 28}} />
+                            <Icon name='md-arrow-back' style={{fontSize: 28,color:'white'}} />
                         </Button>
-                        <Text style={Platform.OS === 'ios' ? styles.iosHeaderTitle : styles.aHeaderTitle}>Confirm Order</Text>
+                        <Text style={{ fontSize: 18,fontWeight: '500',color: 'white'}}>Confirm Order</Text>
                     </Header>
                    <View  >
               <View >
@@ -76,7 +76,7 @@ class placeOrder extends Component {
                   
 
 
-                  <View style={{paddingTop: 20}}>
+                  <View style={{paddingTop: 50}}>
                    
                    
                     
@@ -84,27 +84,27 @@ class placeOrder extends Component {
 
                     <View style={{padding: 10}}>
 
-                    <Text style={{marginLeft: 30, marginRight:30}}>From: {this.props.fromLocation}</Text>
+                    <Text style={{marginLeft: 30, marginRight:30, color:'#fff'}}>From: {this.props.fromLocation}</Text>
                     </View>
 
                      <View style={{padding: 10}}>
 
-                    <Text style={{marginLeft: 30, marginRight:30}}>To: {this.props.toLocation}</Text>
+                    <Text style={{marginLeft: 30, marginRight:30, color:'#fff'}}>To: {this.props.toLocation}</Text>
                     </View>
 
                      <View style={{padding: 10}}>
 
-                    <Text style={{marginLeft: 30, marginRight:30}}>Item: {this.props.itemPickup}</Text>
+                    <Text style={{marginLeft: 30, marginRight:30, color:'#fff'}}>Item: {this.props.itemPickup}</Text>
                     </View>
 
                      <View style={{padding: 10}}>
 
-                    <Text style={{marginLeft: 30, marginRight:30}}>Notes: {this.props.notes}</Text>
+                    <Text style={{marginLeft: 30, marginRight:30, color:'#fff'}}>Notes: {this.props.notes}</Text>
                     </View>
 
                     <View style={{padding: 10}}>
 
-                    <Text style={{marginLeft: 30, marginRight:30}}>Estimated cost: $3 Base Fee + {this.props.distance} miles x $1 per mile = ${this.props.cost}</Text>
+                    <Text style={{marginLeft: 30, marginRight:30, color:'#fff'}}>Estimated cost: $3 Base Fee + {this.props.distance} miles x $1 per mile = ${this.props.cost}</Text>
                     </View>
 
 

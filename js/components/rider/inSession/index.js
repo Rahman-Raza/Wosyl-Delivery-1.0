@@ -8,7 +8,8 @@ import polyline from 'polyline';
 import {BlurView} from 'react-native-blur';
 import LoadingOverlay from '../LoadingOverlay';
 import AwesomeButton from 'react-native-awesome-button';
-import ActionCable from 'react-native-actioncable'
+import ActionCable from 'react-native-actioncable';
+ var {CountDownText} = require('react-native-sk-countdown');
 
 import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, TouchableOpacity } from 'react-native';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
@@ -18,7 +19,7 @@ import Modal from 'react-native-simple-modal';
 
 import Form from 'react-native-form'
 
-import { pushNewRoute } from '../../../actions/route';
+import { pushNewRoute, replaceRoute, replaceOrPushRoute} from '../../../actions/route';
 import { createPickup } from '../../../actions/route';
 import { openDrawer } from '../../../actions/drawer';
 
@@ -44,6 +45,7 @@ const LONGITUDE = 77.586234;
 const LATITUDE_DELTA = 0.0722;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const SPACE = 0.01;
+var App = {};
 
 
 
@@ -76,6 +78,8 @@ class InSession extends Component {
        
         
           this.state = {
+            pickedUP: false,
+            droppedOff: false,
             spinnerVisible: true,
 
             message: '',
@@ -135,38 +139,13 @@ class InSession extends Component {
   }
   
 
-  AcceptOrder = (pickup_driver_id) => {
-
-
-      fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/process_customer' , {
-                                                        method: 'POST',
-                                                        headers: {
-                                                          'Accept': 'application/json',
-                                                          'Content-Type': 'application/json',
-                                                          'X-Auth-Token': this.props.auth_token,
-                                                        },
-                                                        body: JSON.stringify({
-                                                          
-                                                         pickup_driver_id: pickup_driver_id,
-                                                         customer_status: "accepted",
-
-                                                        })
-                                                      }) .then((response) => response.json())
-                                                            .then((responseJson) => {
-                                                           console.log("customer placed the order right", responseJson);
-
-                                                            
-                                                            });
-
-
-    
-  }
+ 
 
   drawRoute =(info) => {
 
-    this._map && this._map.setVisibleCoordinateBounds(parseFloat(info.data.pickup_driver.driver_object.latitude), parseFloat(info.data.pickup_driver.driver_object.longitude), parseFloat(this.props.dropLatitude), parseFloat(this.props.dropLongitude), 100, 100, 100, 100);
+    this._map && this._map.setVisibleCoordinateBounds(parseFloat(info.data.pickup.driver.latitude), parseFloat(info.data.pickup.driver.longitude), parseFloat(this.props.dropLatitude), parseFloat(this.props.dropLongitude), 100, 100, 100, 100);
     console.log("props lat and long",this.props.pickupLatitude,this.props.pickupLongitude);
-    fetch('https://maps.googleapis.com/maps/api/directions/json?units=imperial&origin='+parseFloat(info.data.pickup_driver.driver_object.latitude)+','+parseFloat(info.data.pickup_driver.driver_object.longitude)+'&destination=' + this.props.dropLatitude + ',' + this.props.dropLongitude +'&waypoints='+this.props.pickupLatitude+','+this.props.pickupLongitude+'&key=AIzaSyBIxUYPeN_bdWQMghHe2I62itZy2uzmm3c', {
+    fetch('https://maps.googleapis.com/maps/api/directions/json?units=imperial&origin='+parseFloat(info.data.pickup.driver.latitude)+','+parseFloat(info.data.pickup.driver.longitude)+'&destination=' + this.props.dropLatitude + ',' + this.props.dropLongitude +'&waypoints='+this.props.pickupLatitude+','+this.props.pickupLongitude+'&key=AIzaSyBIxUYPeN_bdWQMghHe2I62itZy2uzmm3c', {
                                                       method: 'POST',
                                                       headers: {
                                                        
@@ -191,7 +170,7 @@ class InSession extends Component {
                                                                      this.setState({overview_polyline: overview_polyline});
 
                                                                        this.setState({ annotations: [{
-                                                          coordinates: [parseFloat(info.data.pickup_driver.driver_object.latitude),parseFloat(info.data.pickup_driver.driver_object.longitude)],
+                                                          coordinates: [parseFloat(info.data.pickup.driver.latitude),parseFloat(info.data.pickup.driver.longitude)],
                                                           type: 'point',
                                                           title: 'From:' ,
                                                           fillAlpha: 1,
@@ -199,7 +178,7 @@ class InSession extends Component {
                                                           strokeAlpha: 1,
                                                            annotationImage: { // optional. Marker image for type=point
                                                                 source: {
-                                                                 uri: info.data.pickup_driver.driver_object.drivers_license_image_thumb_url, // required. string. Either remote image URL or the name (without extension) of a bundled image
+                                                                 uri: info.data.pickup.driver.drivers_license_image_thumb_url, // required. string. Either remote image URL or the name (without extension) of a bundled image
                                                                 },
                                                                 height: 25, // required. number. Image height
                                                                 width: 25, // required. number. Image width
@@ -291,25 +270,23 @@ class InSession extends Component {
                                                           })
   
  }
- setupSubscription = () => {
 
-    this.setState({websocket: true});
-    console.log("Render");
-    console.log(this.props.first_name);
+   setupRecieving = (info) => {
 
-    var Recieving = (info) => {
+      
 
       this.setState({spinnerVisible: false});
+      this.setState({open:true});
       console.log("accepted pickup", info);
 
       this.setState({fooditems: "allthefood"});
 
-      this.setState({driver_name: info.data.pickup_driver.driver_object.first_name});
-      this.setState({driver_image: info.data.pickup_driver.driver_object.drivers_license_image_thumb_url});
-      this.setState({fromCoordinates: [parseFloat(info.data.pickup_driver.driver_object.latitude),parseFloat(info.data.pickup_driver.driver_object.longitude)]});
-      this.setState({fromLatitude: parseFloat(info.data.pickup_driver.driver_object.latitude)});
-      this.setState({fromLongtitude: parseFloat(info.data.pickup_driver.driver_object.longitude)});
-      this.setState({center: {latitude: parseFloat(info.data.pickup_driver.driver_object.latitude), longitude: parseFloat(info.data.pickup_driver.driver_object.longitude)}});
+      this.setState({driver_name: info.data.pickup.driver.first_name});
+      this.setState({driver_image: info.data.pickup.driver.drivers_license_image_thumb_url});
+      this.setState({fromCoordinates: [parseFloat(info.data.pickup.driver.latitude),parseFloat(info.data.pickup.driver.longitude)]});
+      this.setState({fromLatitude: parseFloat(info.data.pickup.driver.latitude)});
+      this.setState({fromLongtitude: parseFloat(info.data.pickup.driver.longitude)});
+      this.setState({center: {latitude: parseFloat(info.data.pickup.driver.latitude), longitude: parseFloat(info.data.pickup.driver.longitude)}});
       
       this.drawRoute(info);
 
@@ -353,10 +330,55 @@ class InSession extends Component {
 
 
       console.log("heres the data", info);
+    
+
+
       
   }
+ setupSubscription = () => {
 
-    var App = {};
+    this.setState({websocket: true});
+    console.log("Render");
+    console.log(this.props.first_name);
+
+    var setupRecievingHere = (data) => {
+      this.setupRecieving(data);
+    }
+
+    var itemPickedup = (info) =>{
+      this.setState({pickedUP:true});
+
+    }
+
+    var pickupFinished = (info) =>{
+      this.setState({pickedUP:false});
+      this.setState({droppedOff:true});
+
+    }
+
+   
+
+  var updateSession = (info) =>{
+
+    var coords = [parseFloat(info.data.pickup_drivers_location.latitude),parseFloat(info.data.pickup_drivers_location.longitude) ];
+
+    console.log("new coords",coords);
+
+   var newAnnotations = this.state.anootations;
+   newAnnotations[0].coordinates = coords;
+
+    this.setState({
+  annotations: newAnnotations
+});
+
+    
+
+
+
+
+  }
+
+    
     console.log("checking cable auth");
     console.log(this.props.auth_token);
     App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/cable?auth_token=' + this.props.auth_token);
@@ -368,13 +390,34 @@ class InSession extends Component {
           // Timeout here is needed to make sure Subscription
           // is setup properly, before we do any actions.
           setTimeout(() => console.log("setting timeout"),
-                                        1000);
+                                        1500);
           console.log("connected to cable for insession");
               
         },
 
         received: function(data) {
-      Recieving(data);
+
+          console.log("checking newData2", data.data.type);
+        
+        if(data.data.type == "pickup_session_started"){
+          
+          console.log("pickup start did occur", data.type);
+          
+        setupRecievingHere(data);
+        }
+
+
+       if (data.data.type == "item_pickedup"){
+          console.log("item pickup did occur2", data.type);
+
+            itemPickedup(data);
+        }
+
+       if (data.data.type == "pickup_session_finished"){
+
+          console.log("item dropoff did occur", data.type);
+          pickupFinished(data);
+        }
 
       
           
@@ -384,6 +427,37 @@ class InSession extends Component {
        
       });
    }
+
+
+    AcceptOrder = (pickup_driver_id) => {
+
+
+      fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/process_customer' , {
+                                                        method: 'POST',
+                                                        headers: {
+                                                          'Accept': 'application/json',
+                                                          'Content-Type': 'application/json',
+                                                          'X-Auth-Token': this.props.auth_token,
+                                                        },
+                                                        body: JSON.stringify({
+                                                          
+                                                         pickup_driver_id: pickup_driver_id,
+                                                         customer_status: "accepted",
+
+                                                        })
+                                                      }) .then((response) => response.json())
+                                                            .then((responseJson) => {
+                                                           console.log("customer placed the order right", responseJson);
+
+                                                            
+                                                            });
+
+
+    
+  }
+  setopenfalse = () =>{
+    this.setState({open: false});
+  }
   
 
 
@@ -395,6 +469,8 @@ class InSession extends Component {
 
   this.setupSubscription();
       }
+
+
 }
 
 
@@ -459,6 +535,10 @@ class InSession extends Component {
   onUpdateUserLocation (location) {
     console.log(location)
   }
+  CancelOrder = () => {
+    this.setState({spinnerVisible: false});
+    this.props.replaceOrPushRoute('home');
+  }
 
    
 
@@ -482,7 +562,7 @@ class InSession extends Component {
         return (
                  
                <View style={styles.container}>
-                  <StatusBar barStyle='default' />
+                  <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
                   
 
                   <View style={styles.map}>
@@ -522,56 +602,78 @@ class InSession extends Component {
                            } >
                                <Icon name='ios-menu' />
                            </Button>
-                           <Title>Wosyl Delivery</Title>
+                           <Title> </Title>
                        </Header>
-            </View>
+            </View>{this.state.spinnerVisible &&
+                <View style={{marginTop: 250, alignItems: 'center',marginBottom:150,backgroundColor: '#000', opacity: .8 }} >
+                
+                 
+                    <Spinner  style={{marginRight: 20}} isVisible={true} size={100} type={'Circle'} color={"#3DA000"}/>
+                                   
+                                       
+                                          <Text style={{fontSize: 20, marginTop:10, marginBottom: 10, color: '#fff'}}>Looking for Driver...</Text>
 
-            { this.state.spinnerVisible &&
-                <View style={{marginTop: 250, alignItems: 'center' }} >
-                <Spinner  isVisible={true} size={100} type={'Circle'} color={"#3DA000"}/>
-                 <Text style={{fontWeight: '600',color: '#fff', opacity: .99, marginTop:20}}>Looking For Driver</Text>
+                                           <View>
 
-                </View>
-            }
-           
+                                              <CountDownText
+                                                  style={{textAlign: 'center',color: 'white',fontSize: 20}}
+                                                  countType='seconds' // 计时类型：seconds / date 
+                                                  auto={true} // 自动开始 
+                                                  afterEnd={() => {this.setState({spinnerVisible:false}) }} // 结束回调 
+                                                  timeLeft={120} // 正向计时 时间起点为0秒 
+                                                  step={-1} // 计时步长，以秒为单位，正数则为正计时，负数为倒计时 
+                                                  startText= ''// 开始的文本 
+                                                  endText= ''// 结束的文本 
+                                                  intervalText= {(sec) => '' }/>
+                                              </View>
+                                            
+                                            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} >
 
-{this.state.open && 
-                                <Container style={{marginTop:350}}>
-                <Content>
+                                                      <Button rounded block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => this.CancelOrder()} >
+
+                                                        <Text style={{fontWeight: '600',color: '#fff'}}>Cacel Order</Text>
+                                                      </Button>
+                                            </View>
+
+                                         
+
+                                                   
+                                                                                      
+                                           
+                                          
+                                       
+                                    
+                                </View>
+
+                
+            }{this.state.open && 
+          <Container style={{marginTop:225}}>
+                <Content style={{ opacity: .8}}>
                     <Card>
                         <CardItem style={{alignItems: 'center'}}>
                             
-                            <Text>Driver Found: {this.state.driver_name}</Text>
+                            <Text>Your Driver: {this.state.driver_name}</Text>
                             
                         </CardItem>
 
                         <CardItem style={{alignItems: 'center'}}>
-                            <Image style={{width: 150, height: 150, alignItems: 'center'}} source={{uri: this.state.driver_image}} />
+                            <Image style={{width: 150, height: 150, alignItems: 'center',marginLeft:100}} source={{uri: this.state.driver_image}} />
                         </CardItem>
 
                         <CardItem>
-                            <Grid>
-                                                <Col style={{padding: 10}}>
-
-                                                    <Button  style={{opacity: .99}}rounded onPress={() => this.AcceptOrder(true)} >
-
-                                                      <Text style={{fontWeight: '600',color: '#fff', opacity: .99}}>Accept Delivery</Text>
-                                                    </Button>
-                                                </Col>
-                                                <Col style={{padding: 10}}>
-                                                  <Button style={{opacity: .99}} rounded onPress={() => this.AcceptOrder(false) } >
-
-                                                      <Text style={{fontWeight: '600',color: '#fff', opacity: .99}}>Decline Delivery</Text>
-                                                  </Button>
-                                                </Col>
-                                            </Grid>
+                            <Grid>  
+                        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                        <Col style={{padding: 10,alignItems: 'center'}}>{(!this.state.pickedUP && !this.state.droppedOff)&&<Text style={{fontWeight: '600',color: '#000', opacity: .99, marginTop:20}}>Your Driver is on his way!</Text>}{this.state.pickedUP && <Text style={{fontWeight: '600',color: '#000', opacity: .99, marginTop:20}}> Your Driver has picked up your order</Text>}{this.state.droppedOff &&
+                          <Text style={{fontWeight: '600',color: '#000', opacity: .99, marginTop:20}}> Your driver is here with your order, thank you for using Wosyl! </Text>}{this.state.droppedOff && <Button style={{marginLeft:100}}rounded onPress={() => this.props.replaceOrPushRoute("home")} >
+                          <Text style={{fontWeight: '600',color: '#000'}}>Order again</Text>
+                          </Button>}
+                        </Col>
+                        </View>
+                            </Grid>
                         </CardItem>
                    </Card>
                 </Content>
-            </Container>}
-
-
-            <View style={styles.modalStyle}>
+            </Container>}<View style={styles.modalStyle}>
             </View>
             </View>
         )

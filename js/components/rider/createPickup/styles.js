@@ -11,7 +11,7 @@ module.exports = StyleSheet.create({
     
   
   iosHeader: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(0,0,0,0)',
     paddingTop: 20
   },
   aHeader: {
@@ -33,7 +33,7 @@ module.exports = StyleSheet.create({
   iosHeaderTitle: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#000'
+    color: '#fff'
  },
   headerContainer: {
     position: 'absolute',
@@ -100,7 +100,7 @@ module.exports = StyleSheet.create({
     backgroundColor: '#fff'
   },
   modalStyle: {
-    marginTop:20,
+    marginBottom: 20,
     position: 'relative',
     top: 0,
     left: 0,

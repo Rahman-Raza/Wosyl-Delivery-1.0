@@ -4,21 +4,22 @@ import React, { Component } from 'react';
 
 import { connect } from 'react-redux';
 import polyline from 'polyline';
+import Modal from 'react-native-simple-modal';
 
 
 import {BlurView} from 'react-native-blur';
 import LoadingOverlay from '../LoadingOverlay';
 import AwesomeButton from 'react-native-awesome-button';
 
-import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter} from 'react-native';
+import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter, TouchableOpacity} from 'react-native';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
 
-import { Modal, TouchableHighlight} from 'react-native';
+import { TouchableHighlight} from 'react-native';
 
 
 import Form from 'react-native-form'
 
-import { pushNewRoute } from '../../../actions/route';
+import { pushNewRoute, replaceOrPushRoute } from '../../../actions/route';
 import { createPickup } from '../../../actions/route';
 import { openDrawer } from '../../../actions/drawer';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -49,7 +50,7 @@ const SPACE = 0.01;
 var BTClient = require('react-native-braintree-xplat');
 
 
-
+ 
 
 
 
@@ -64,11 +65,11 @@ class Home extends Component {
        }
 
 
- 
 
 
        
         static propTypes = {
+
     first_name: React.PropTypes.string,
    
     last_name: React.PropTypes.string,
@@ -87,13 +88,15 @@ class Home extends Component {
        
         
           this.state = {
+            open: false,
+          currentLocation : {description: 'Current Location', geometry: { location: { lat: 48.8496818, lng: 2.2940881 } }},
             alreadyPaid: false,
             usedCurrentLocation: false,
             visiblePadding: 0,
             behavior: 'position',
             progress: 0.25,
              isVisible: false,
-            fromLocation: 'From: Current Location',
+            
             fromLatitude: 0,
             fromLongtitude: 0,
             toLocation: '',
@@ -150,7 +153,16 @@ class Home extends Component {
 
     var pickupItem = {"toLocation" : this.state.toLocation, "toLatitude": this.state.toLatitude, "toLongtitude" : this.state.toLongtitude, 
     "fromLocation" : this.state.fromLocation,"fromLatitude": this.state.fromLatitude, "fromLongtitude" : this.state.fromLongtitude, "overview_polyline" : this.state.overview_polyline};
+
+    if ((!pickupItem.toLocation) || (!pickupItem.fromLocation)){
+      console.log("there was no toLocation fool");
+      this.setState({open: true});
+
+    }
+
+    else{
     this.props.createPickup('createPickup',pickupItem);
+    }
   }
   
   inputFocused (refName) {
@@ -254,6 +266,10 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
     );
     navigator.geolocation.watchPosition((position) => {
       this.setState({position});
+      console.log("checking position of gps", position);
+      this.setState({ currentLocation : {description: 'Current Location', geometry: { location: { lat: position.coords.latitude, lng: position.coords.longitude } }}});
+      this.setState({currentLat: position.coords.latitude, currentLong: position.coords.longitude});
+
     });
     
 
@@ -440,6 +456,12 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
         return true
       }
     }
+
+    driverModeSwitch = () => {
+
+  this.props.replaceOrPushRoute('driverHome');
+
+}
     
     render() {
 
@@ -448,7 +470,7 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
 
         if(this.props.auth_token){
 
-         this.setupBraintree();
+        
         this.setState({alreadyPaid: true});
         }
         
@@ -456,7 +478,7 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
         return (
                  
                 <View style={styles.container}>
-                  <StatusBar barStyle='default' />
+                  <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
                   <Content theme={theme}>
                   </Content>
 
@@ -495,22 +517,40 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
 
                            } >
                                <Icon name='ios-menu' />
-                           </Button>
-                           <Title style={{marginTop:15, marginRight:10}}><Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}>
-                </Image></Title>
-
-                           
-                           
-                       </Header>
+                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
                     
-                     </View>
-        
-                  
-                     <View style={styles.modalStyle}>
-               
-                         
-              
-                   
+                     </View>{this.props.is_driver_verified &&
+                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
+                        <Switch
+                          onValueChange={(value) => this.driverModeSwitch()}
+                          style={{marginBottom: 10}}
+                          value={false} />
+                          <Text style={{color:'#fff'}}>Driver Mode</Text>
+                        
+                      </View>}<View style={{flex: 1, justifyContent: 'center', alignItems: 'center', }}>
+
+                                    <Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.open}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({open: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                       <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({open: false})}>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>Please enter a pickup location and destination</Text>
+                                          
+                                          
+                                             
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+                                </View>
+                      
+                      <View style={styles.modalStyle}>
                         <View style={{padding: 10}}>
                         
        
@@ -523,18 +563,22 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                                 minLength={2} // minimum length of text to search
                                 autoFocus={false}
                                 fetchDetails={true}
-                                currentLocation={this.checkCurrentLocationUsed()} // Will add a 'Current location' button at the top of the predefined places list
-                                currentLocationLabel="Current location"
+                                currentLocation={false} // Will add a 'Current location' button at the top of the predefined places list
+                                
 
                                
                                 onPress={(data, details = null) => { 
                                   console.log("googleplaces");
                                   console.log(details);
-                                  this.setState({fromLocation:details.name});
-                                  this.setState({fromLatitude:details.geometry.location.lat});
-                                  if (details.name == 'Current Location'){
-                                    this.setState({usedCurrentLocation: true});
+                                  console.log("checking details.name", details.name);
+                                  if (details.name){
+                                    this.setState({fromLocation:details.name});
                                   }
+                                  else{
+                                    this.setState({fromLocation:'Current Location'});
+                                  }
+                                  this.setState({fromLatitude:details.geometry.location.lat});
+                                  
                                   this.setState({fromLongtitude:details.geometry.location.lng});
                                   console.log("checking from long");
                                   console.log(this.state.fromLatitude,this.state.fromLongtitude);
@@ -647,7 +691,7 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                                   types: 'food',
                                 }}
 
-
+                                predefinedPlaces={[this.state.currentLocation]}
                                 filterReverseGeocodingByTypes={['locality', 'administrative_area_level_3']}  > 
                             </GooglePlacesAutocomplete>
 
@@ -666,13 +710,19 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                                 minLength={2} // minimum length of text to search
                                 autoFocus={false}
                                 fetchDetails={true}
-                                currentLocation={this.checkCurrentLocationUsed()} // Will add a 'Current location' button at the top of the predefined places list
-                                currentLocationLabel="Current location"
+                                currentLocation={false} // Will add a 'Current location' button at the top of the predefined places list
+                                
                                
                                 onPress={(data, details = null) => { 
                                   console.log("googleplaces");
                                   console.log(details);
-                                  this.setState({toLocation:details.name});
+                                  if (details.name){
+                                    this.setState({toLocation:details.name});
+                                  }
+                                  else{
+                                    this.setState({toLocation:'Current Location'});
+                                  }
+                                  
                                   this.setState({toLatitude:details.geometry.location.lat});
                                   this.setState({toLongtitude:details.geometry.location.lng});
                                    this.setState({ toCoordinates: [parseFloat(details.geometry.location.lat),parseFloat(details.geometry.location.lng) ]});
@@ -681,10 +731,40 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                                   }
                                   console.log("checking parseFloat:");
                                   console.log(parseFloat(details.geometry.location.lat), parseFloat(details.geometry.location.lng));
-                                  
+
+                                  if(this.state.fromLocation){
                                   
                                   this._map && this._map.setVisibleCoordinateBounds(parseFloat(this.state.fromLatitude), parseFloat(this.state.fromLongtitude), parseFloat(this.state.toLatitude), parseFloat(this.state.toLongtitude), 100, 100, 100, 100);
                                    this.drawRoute();
+
+                                 }
+
+                                 else{
+                                  this._map && this._map.setCenterCoordinateZoomLevel(parseFloat(details.geometry.location.lat), parseFloat(details.geometry.location.lng),13);
+
+                                  this.setState({ annotations: [{
+                                                          coordinates: this.state.toCoordinates,
+                                                          type: 'point',
+                                                          title: this.state.toLocation,
+                                                          fillAlpha: 1,
+                                                          fillColor: '#000000',
+                                                          strokeAlpha: 1,
+                                                           annotationImage: { // optional. Marker image for type=point
+                                                                source: {
+                                                                 uri: "https://i.imgsafe.org/4a5f87e60f.png", // required. string. Either remote image URL or the name (without extension) of a bundled image
+                                                                },
+                                                                height: 50, // required. number. Image height
+                                                                width: 50, // required. number. Image width
+                                                              },
+                                                          subtitle: 'It has a rightCalloutAccessory too',
+                                                          // rightCalloutAccessory: {
+                                                          //   source: { uri: 'https://cldup.com/9Lp0EaBw5s.png' },
+                                                          //   height: 50,
+                                                          //   width: 50
+                                                          // }, 
+                                                          id: 'marker3'
+                                                        }]});
+                                 }
                                 
                                 this._map && this._map.selectAnnotation("marker1",false);
                                 this._map && this._map.selectAnnotation("marker2",false);
@@ -763,15 +843,16 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                                   types: 'food',
                                 }}
 
-
+                                predefinedPlaces={[this.state.currentLocation]}
                                 filterReverseGeocodingByTypes={['locality', 'administrative_area_level_3']}  > 
+                                
                             </GooglePlacesAutocomplete>
                             
                         </View>
                         <View style={{padding: 10}}>
 
 
-                        <Button rounded block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}}  onPress={() => {
+                        <Button rounded block style={{marginLeft: 30, marginRight:30, borderColor:'#fff', marginBottom:10}}  onPress={() => {
                                        if (this.state.fromLatitude == 0 ){
                                            
                                         this.state.fromLatitude =  this.state.position.coords.latitude;
@@ -825,6 +906,7 @@ function mapStateToProps(state) {
     email: state.route.users.email,
     phone_no: state.route.users.phone_no,
     auth_token: state.route.users.access_token,
+    is_driver_verified: state.route.users.is_driver_verified,
 
     
   }
