@@ -3,7 +3,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter} from 'react-native';
+
+import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter, AsyncStorage} from 'react-native';
 
 import { replaceRoute,popRoute} from '../../../actions/route';
 import {setUser} from '../../../actions/user';
@@ -52,6 +53,9 @@ class SignIn extends Component {
       super(props);
 
       this.state ={
+        token: null,
+        user: null,
+        badLogin: null,
         visiblePadding: 0,
         open: false,
         name: '',
@@ -167,6 +171,7 @@ class SignIn extends Component {
                                                                     this.setState({is_driver_verified:responseJson.user.is_driver_verified});
 
                                                                     if(responseJson.user.is_driver_verified){
+                                                                      AsyncStorage.multiSet([['token',this.state.password],['userID',responseJson.user.email]]);
                                                                       console.log("state.userDetail", this.state.userDetail);
                                                                       this.replaceRoute('home',this.state.userDetail);
 
@@ -176,6 +181,7 @@ class SignIn extends Component {
 
 
                                                                     this.props.setUser(responseJson.user);
+                                                                    AsyncStorage.multiSet([['token',this.state.password],['userID',responseJson.user.email]]);
                                                                  this.replaceRoute('home',this.state.userDetail);
                                                                   }
                                                                 }
@@ -189,7 +195,7 @@ class SignIn extends Component {
 
                                                                     if(this.state.is_activated){
 
-
+                                                                      AsyncStorage.multiSet([['token',this.state.password],['userID',responseJson.user.email]]);
                                                                     this.replaceRoute('PhoneVerify',responseJson.user);
                                                                     }
                                                                 }

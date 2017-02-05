@@ -13,10 +13,10 @@ import ActionCable from 'react-native-actioncable';
 
 import AwesomeButton from 'react-native-awesome-button';
 
-import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, TouchableOpacity,Linking } from 'react-native';
+import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, TouchableOpacity,Linking, Modal, } from 'react-native';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
 import {  TouchableHighlight} from 'react-native';
-import Modal from 'react-native-simple-modal';
+
 
 
 
@@ -27,7 +27,7 @@ import { createPickup } from '../../../actions/route';
 import { openDrawer } from '../../../actions/drawer';
 
 
-import { Header, Content, Text, Button, Icon, Card, Title, InputGroup, Input } from 'native-base';
+import { Header, Content, Text, Button, Icon, Card, Title, InputGroup, Input, CardItem} from 'native-base';
 import { Grid, Col, Row } from 'react-native-easy-grid';
 const accessToken = 'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw';
 
@@ -181,7 +181,7 @@ class driverHome extends Component {
             pickup_customer: '',
             pickup_item: '',
             pickup_notes: '',
-
+            modalVisible: true,
             open: false,
             begin: false,
 
@@ -250,7 +250,9 @@ class driverHome extends Component {
     navigator.geolocation.watchPosition((position) => {
       console.log("checking navigator", position);
       this.setState({position});
+
       this.updateLocation();
+      
       this.subscribeLocation(position);
 
 
@@ -760,6 +762,13 @@ driverModeSwitch = () => {
 
 }
 
+componentWillUnmount () {
+        App.comments &&
+            App.cable.subscriptions.remove(App.comments);
+            console.log("finished removing websocket");
+    }
+
+    
 
       
 
@@ -812,18 +821,22 @@ driverModeSwitch = () => {
                            } >
                                <Icon name='ios-menu' />
                            </Button>
-                           <Title>Wosyl Driver Mode</Title>
+                           <Title> </Title>
                        </Header>
                     
                      </View>
 
-                     <View style={{justifyContent: 'center', alignItems: 'center',marginBottom:600, marginLeft:250}}> 
+                     <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
                         <Switch
                           onValueChange={(value) => this.driverModeSwitch()}
                           style={{marginBottom: 10}}
                           value={true} />
+                          <Text style={{color:'#fff'}}>Driver Mode</Text>
                         
                       </View>
+
+                      
+
 
                      
                     
@@ -918,7 +931,8 @@ driverModeSwitch = () => {
                                        
                                     
                                 </View>}
-        
+
+                                
                   
                  
                  

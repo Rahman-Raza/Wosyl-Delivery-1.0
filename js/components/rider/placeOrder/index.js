@@ -251,12 +251,12 @@ function mapStateToProps(state) {
       else {
         var notes = state.route.pickup.notes;
       }
-      
+      var cost = (parseInt(state.route.pickup.delivery_distance) + 3).toString();
 
         return {
 
           cost: cost,
-          distance: distance,
+          distance: state.route.pickup.delivery_distance,
           toLocation: state.route.pickup.toLocation,
           toLatitude: state.route.pickup.toLatitude,
           toLongtitude: state.route.pickup.toLongtitude,

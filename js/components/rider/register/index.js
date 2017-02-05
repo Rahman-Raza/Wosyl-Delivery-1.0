@@ -48,21 +48,8 @@ class Register extends Component {
                         <Text style={Platform.OS === 'ios' ? styles.iosHeaderTitle : styles.aHeaderTitle}>Register</Text>
                     </Header>
                     <View style={{padding: 10}}>
-                        <Grid>
-                            <Col style={{padding: 10}}>
-                                <Button block style={{borderRadius: 0,backgroundColor: '#DD4B3E'}}>
-                                    <Icon name='logo-googleplus' style={{fontSize: 28}} />
-                                </Button>
-                            </Col>
-                            <Col style={{padding: 10}}>
-                                <Button block style={{borderRadius: 0,backgroundColor: '#3B579D'}}>
-                                    <Icon name='logo-facebook' style={{fontSize: 28}} />
-                                </Button>
-                            </Col>
-                        </Grid>
-                        <View style={{padding: 10}}>
-                            <Text style={styles.orText}>OR</Text>
-                        </View>
+                        
+                        
                         <Grid>
                             <Col style={{padding: 10}}>
                                 <InputGroup>
@@ -118,6 +105,10 @@ class Register extends Component {
                                                                 console.log("Register User Detail");
                                                                 console.log(this.state.userDetail);
                                                                  this.replaceRoute('PhoneVerify',this.state.userDetail);
+                                                            }
+
+                                                            else{
+                                                                console.log("did not register", responseJson);
                                                             }
                                                           })
                                                           .catch((error) => {

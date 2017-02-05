@@ -1,6 +1,8 @@
 package com.wosyldelivery;
 
 import com.facebook.react.ReactActivity;
+import com.github.yamill.orientation.OrientationPackage;
+import com.cmcewen.blurview.BlurViewPackage;
 import com.react.rnspinkit.RNSpinkitPackage;
 
 public class MainActivity extends ReactActivity {

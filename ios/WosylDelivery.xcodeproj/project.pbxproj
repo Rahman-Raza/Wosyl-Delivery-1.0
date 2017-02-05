@@ -44,6 +44,8 @@
 		4C4F9DE81DDAF0440061B39F /* libRCTMapboxGL.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C4F9DDA1DDAEF7D0061B39F /* libRCTMapboxGL.a */; };
 		4C5E717A1E0A0B2800BD2FA2 /* libRNSpinkit.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5E71791E0A0B1300BD2FA2 /* libRNSpinkit.a */; };
 		4C5E71821E0B45AB00BD2FA2 /* libRCTBraintree.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5E71811E0B458E00BD2FA2 /* libRCTBraintree.a */; };
+		4C5E88DA1E2274C900DFBA1E /* libRCTOrientation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5E88D31E2274A700DFBA1E /* libRCTOrientation.a */; };
+		4C5E88E11E22BBD100DFBA1E /* libAirMaps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C5E88E01E22BBC700DFBA1E /* libAirMaps.a */; };
 		4C7BAED81E02101900681210 /* Braintree.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C7BAED11E02101900681210 /* Braintree.framework */; };
 		4C7BAED91E02101900681210 /* Braintree.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4C7BAED11E02101900681210 /* Braintree.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		4C7BAEF11E02118000681210 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C7BAEF01E02118000681210 /* Accelerate.framework */; };
@@ -154,6 +156,20 @@
 			remoteGlobalIDString = DE4F06CC1D156AA8005F99CD;
 			remoteInfo = RCTBraintree;
 		};
+		4C5E88D21E2274A700DFBA1E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4C5E88C41E2274A600DFBA1E /* RCTOrientation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = RCTOrientation;
+		};
+		4C5E88DF1E22BBC700DFBA1E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4C5E88DB1E22BBC600DFBA1E /* AirMaps.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 11FA5C511C4A1296003AC2EE;
+			remoteInfo = AirMaps;
+		};
 		4C7BAED61E02101900681210 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
@@ -239,6 +255,8 @@
 		4C4F9DE31DDAEFFA0061B39F /* Mapbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Mapbox.framework; sourceTree = "<group>"; };
 		4C5E71661E0A0B1300BD2FA2 /* RNSpinkit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RNSpinkit.xcodeproj; path = "../node_modules/react-native-spinkit/ios/RNSpinkit.xcodeproj"; sourceTree = "<group>"; };
 		4C5E717B1E0B458D00BD2FA2 /* RCTBraintree.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTBraintree.xcodeproj; path = "../node_modules/react-native-braintree-xplat/ios/RCTBraintree.xcodeproj"; sourceTree = "<group>"; };
+		4C5E88C41E2274A600DFBA1E /* RCTOrientation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTOrientation.xcodeproj; path = "../node_modules/react-native-orientation/iOS/RCTOrientation.xcodeproj"; sourceTree = "<group>"; };
+		4C5E88DB1E22BBC600DFBA1E /* AirMaps.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AirMaps.xcodeproj; path = "../node_modules/react-native-maps/ios/AirMaps.xcodeproj"; sourceTree = "<group>"; };
 		4C7BAED11E02101900681210 /* Braintree.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Braintree.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4C7BAED31E02101900681210 /* Braintree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Braintree.h; sourceTree = "<group>"; };
 		4C7BAED51E02101900681210 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -273,6 +291,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4C5E88E11E22BBD100DFBA1E /* libAirMaps.a in Frameworks */,
+				4C5E88DA1E2274C900DFBA1E /* libRCTOrientation.a in Frameworks */,
 				4C5E71821E0B45AB00BD2FA2 /* libRCTBraintree.a in Frameworks */,
 				4C5E717A1E0A0B2800BD2FA2 /* libRNSpinkit.a in Frameworks */,
 				4CFF259C1E012ACA00BFB6F4 /* libRCTCameraRoll.a in Frameworks */,
@@ -449,6 +469,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		4C5E88C51E2274A600DFBA1E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4C5E88D31E2274A700DFBA1E /* libRCTOrientation.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4C5E88DC1E22BBC600DFBA1E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4C5E88E01E22BBC700DFBA1E /* libAirMaps.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		4C7BAED21E02101900681210 /* Braintree */ = {
 			isa = PBXGroup;
 			children = (
@@ -510,6 +546,8 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				4C5E88DB1E22BBC600DFBA1E /* AirMaps.xcodeproj */,
+				4C5E88C41E2274A600DFBA1E /* RCTOrientation.xcodeproj */,
 				4C5E717B1E0B458D00BD2FA2 /* RCTBraintree.xcodeproj */,
 				4C5E71661E0A0B1300BD2FA2 /* RNSpinkit.xcodeproj */,
 				4CFF25891E012ABF00BFB6F4 /* RCTCameraRoll.xcodeproj */,
@@ -680,6 +718,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = 4C5E88DC1E22BBC600DFBA1E /* Products */;
+					ProjectRef = 4C5E88DB1E22BBC600DFBA1E /* AirMaps.xcodeproj */;
+				},
+				{
 					ProductGroup = 00C302A81ABCB8CE00DB3ED1 /* Products */;
 					ProjectRef = 00C302A71ABCB8CE00DB3ED1 /* RCTActionSheet.xcodeproj */;
 				},
@@ -714,6 +756,10 @@
 				{
 					ProductGroup = 00C302D41ABCB9D200DB3ED1 /* Products */;
 					ProjectRef = 00C302D31ABCB9D200DB3ED1 /* RCTNetwork.xcodeproj */;
+				},
+				{
+					ProductGroup = 4C5E88C51E2274A600DFBA1E /* Products */;
+					ProjectRef = 4C5E88C41E2274A600DFBA1E /* RCTOrientation.xcodeproj */;
 				},
 				{
 					ProductGroup = 139105B71AF99BAD00B5F7CC /* Products */;
@@ -832,6 +878,20 @@
 			fileType = archive.ar;
 			path = libRCTBraintree.a;
 			remoteRef = 4C5E71801E0B458E00BD2FA2 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		4C5E88D31E2274A700DFBA1E /* libRCTOrientation.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libRCTOrientation.a;
+			remoteRef = 4C5E88D21E2274A700DFBA1E /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		4C5E88E01E22BBC700DFBA1E /* libAirMaps.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libAirMaps.a;
+			remoteRef = 4C5E88DF1E22BBC700DFBA1E /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		4CFF255E1E00B8E600BFB6F4 /* libRCTCamera.a */ = {
@@ -1022,6 +1082,7 @@
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-2";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
@@ -1051,6 +1112,7 @@
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-2";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;

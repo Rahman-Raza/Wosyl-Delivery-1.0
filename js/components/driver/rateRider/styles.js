@@ -63,7 +63,7 @@ module.exports = StyleSheet.create({
     color: 'green'
   },
   trip: {
-    color: '#797979',
+    color: '#000',
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 14

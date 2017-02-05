@@ -3,7 +3,7 @@
 
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Platform } from 'react-native';
+import { Platform,Image,  AsyncStorage } from 'react-native';
 
 import { replaceOrPushRoute, resetRoute,replaceRoute } from '../../../actions/route';
 import { closeDrawer } from '../../../actions/drawer';
@@ -57,12 +57,19 @@ navigateTo2(route) {
             }
         }
     }
+
+    logUserOut = () =>{
+        AsyncStorage.multiRemove(['token','userId']);
+    }
     resetRoute(route) {
         this.props.closeDrawer();
+        this.logUserOut();
+
         this.props.resetRoute(route);
     }
    replaceRoute(route){
     this.props.closeDrawer();
+
     this.props.replaceRoute(route);
    }
     
@@ -70,9 +77,22 @@ navigateTo2(route) {
         return (
             <View style={{flex: 1,backgroundColor: '#19192B'}}>
                 
-                    <Content style={Platform.OS === 'android' ? styles.adrawerContent : styles.drawerContent}>
+                    <Content style={Platform.OS === 'android' ? styles.adrawerContent : styles.drawerContent}>{this.props.userImage && 
+
+                        <View style={{padding: 10, justifyContent: 'center', alignItems: 'center'}}>
+
+                        
+                        
+                           <Image style={styles.image} source={{ uri: this.props.drivers_license_image_thumb_url }} /> 
+                        
+
+                            
+
+                        </View>}
+
+                        
                     	<List  foregroundColor={'white'} style={styles.profile}>
-                            <ListItem button iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
+                            <ListItem button onPress={() => this.navigateTo2('settings')} iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
                                 <Icon name='ios-person' />
                                 <Text style={styles.linkText} >{this.props.first_name}</Text>
                             </ListItem>
@@ -137,14 +157,27 @@ function mapStateToProps(state) {
 
     console.log("maptostateSidebarrrr:");
     console.log(state);
-
+    
     if (state.route.users){
+
+        var imageExists = false;
+
+        if (state.route.users.drivers_license_image_large_url == 'http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/assets/missing.png'){
+            
+        }
+
+        else{
+            imageExists = true;
+        }
+
         return {
     first_name: state.route.users.first_name,
     last_name: state.route.users.last_name,
     email: state.route.users.email,
     phone_no: state.route.users.phone_no,
     is_driver_verified: state.route.users.is_driver_verified,
+    drivers_license_image_thumb_url: state.route.users.drivers_license_image_large_url,
+    userImage: imageExists,
 
     
   }

@@ -9,13 +9,7 @@ var deviceHeight = Dimensions.get('window').height;
 var deviceWidth = Dimensions.get('window').width;
 module.exports = StyleSheet.create({
     
-  map: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
+
   iosHeader: {
     backgroundColor: '#fff',
   },
@@ -37,11 +31,17 @@ module.exports = StyleSheet.create({
     marginTop: -5
  },
  mapContainer: {
-    borderWidth: 0,
-    padding: 0, 
-    height: deviceHeight/6, 
-    overflow: 'hidden'
- },
+   
+    height: deviceHeight/1.3, 
+    
+ }, 
+ map: {
+   position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
  
   detailContainer: {
     borderWidth: 0,
@@ -55,13 +55,6 @@ module.exports = StyleSheet.create({
     alignSelf: 'flex-end',
     marginTop: -40
   },
-  dummyView: {
-    position:'absolute', 
-    top: 0, 
-    bottom:0, 
-    left: 0, 
-    right:0, 
-    backgroundColor: 'transparent'
-  },
+  
 
 });

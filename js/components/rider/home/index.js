@@ -13,6 +13,8 @@ import AwesomeButton from 'react-native-awesome-button';
 
 import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter, TouchableOpacity} from 'react-native';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
+var Orientation = require('react-native-orientation');
+
 
 import { TouchableHighlight} from 'react-native';
 
@@ -152,7 +154,7 @@ class Home extends Component {
         this.setState({modalVisible: false});
 
     var pickupItem = {"toLocation" : this.state.toLocation, "toLatitude": this.state.toLatitude, "toLongtitude" : this.state.toLongtitude, 
-    "fromLocation" : this.state.fromLocation,"fromLatitude": this.state.fromLatitude, "fromLongtitude" : this.state.fromLongtitude, "overview_polyline" : this.state.overview_polyline};
+    "fromLocation" : this.state.fromLocation,"fromLatitude": this.state.fromLatitude, "fromLongtitude" : this.state.fromLongtitude, "overview_polyline" : this.state.overview_polyline, "delivery_distance": this.state.delivery_distance};
 
     if ((!pickupItem.toLocation) || (!pickupItem.fromLocation)){
       console.log("there was no toLocation fool");
@@ -179,10 +181,23 @@ class Home extends Component {
 
 
 componentWillMount(){
-
+  var initial = Orientation.getInitialOrientation();
+    if (initial === 'PORTRAIT') {
+      //do stuff
+    } else {
+      //do other stuff
+    }
+   
      DeviceEventEmitter.addListener('keyboardWillShow', this.keyboardWillShow.bind(this));
     DeviceEventEmitter.addListener('keyboardWillHide', this.keyboardWillHide.bind(this));
 }
+
+ componentWillUnmount() {
+    Orientation.getOrientation((err,orientation)=> {
+      console.log("Current Device Orientation: ", orientation);
+    });
+    Orientation.removeOrientationListener(this._orientationDidChange);
+  }
 
  keyboardWillShow (e) {
     
@@ -250,11 +265,20 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
 
 }
 
+distance_extractor = (data) => {
+
+ console.log("checking data parseFloat",parseFloat(data));
+}
+
 
     componentDidMount() {
 
+   
+      Orientation.lockToPortrait(); //this will lock the view to Portrait
+    //Orientation.lockToLandscape(); //this will lock the view to Landscape
+    //Orientation.unlockAllOrientations(); //this will unlock the view to all Orientations
 
-      
+    
      
 
 
@@ -303,7 +327,7 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
        },
        
        zoom: 12,
-       direction: 0
+       
      }
   }
 
@@ -335,7 +359,8 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
 
                                                                
 
-                                                                     
+                                                                     console.log("here is google legs data with text", responseJson.routes[0].legs[0].distance.text);
+                                                                     this.setState({delivery_distance: parseFloat(responseJson.routes[0].legs[0].distance.text)});
                                                                      console.log(responseJson.routes[0].overview_polyline.points);
                                                                      var overview_polyline = polyline.decode(responseJson.routes[0].overview_polyline.points);
                                                                      console.log("overview_polyline:");
@@ -462,6 +487,8 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
   this.props.replaceOrPushRoute('driverHome');
 
 }
+
+
     
     render() {
 
@@ -527,7 +554,7 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                           value={false} />
                           <Text style={{color:'#fff'}}>Driver Mode</Text>
                         
-                      </View>}<View style={{flex: 1, justifyContent: 'center', alignItems: 'center', }}>
+                      </View>}
 
                                     <Modal
                                        offset={-100}
@@ -548,7 +575,7 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                                           </TouchableOpacity>
                                        </View>
                                     </Modal>
-                                </View>
+                                
                       
                       <View style={styles.modalStyle}>
                         <View style={{padding: 10}}>
@@ -575,7 +602,9 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                                     this.setState({fromLocation:details.name});
                                   }
                                   else{
-                                    this.setState({fromLocation:'Current Location'});
+                                    console.log("checking google details", details);
+                                    this.setState({fromLocation: this.props.first_name+" 's"+" Current Location"});
+
                                   }
                                   this.setState({fromLatitude:details.geometry.location.lat});
                                   
@@ -717,9 +746,11 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                                   console.log("googleplaces");
                                   console.log(details);
                                   if (details.name){
+
                                     this.setState({toLocation:details.name});
                                   }
                                   else{
+                                    
                                     this.setState({toLocation:'Current Location'});
                                   }
                                   

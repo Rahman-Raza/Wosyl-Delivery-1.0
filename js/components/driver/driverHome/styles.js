@@ -156,7 +156,7 @@ module.exports = StyleSheet.create({
     width: deviceWidth
   },
   iosHeader: {
-    backgroundColor: '#fff'
+    backgroundColor: 'rgba(0,0,0,0)'
   },
   aHeader: {
     backgroundColor: '#fff',
@@ -179,6 +179,50 @@ module.exports = StyleSheet.create({
     backgroundColor: '#428bca'
 
     
+  },helpBtn: {
+    alignSelf: 'flex-end',
+    borderColor: '#797979'
+  },
+  
+  starIcon: {
+    color: '#797979',
+    fontSize: 18,
+    lineHeight: 20
+  },modalView: {
+    position: 'absolute', 
+    bottom: 0,
+    width: deviceWidth
+  },
+  rateCard: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 0,
+    borderColor: '#fff'
+  },
+  profileIcon: {
+    alignSelf: 'center',
+    paddingRight: 10,
+    color: '#797979'
+  },
+  ratings: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    borderWidth: 0,
+    borderRadius: 0,
+    borderColor: '#fff'
+  },
+  btnContainer: {
+    borderTopWidth: 0.5,
+    borderRadius: 0,
+    borderColor: '#eee',
+    borderBottomColor: '#eee'
+  },
+  btnText: {
+    color: '#000',
+    fontSize: 20,
+    textAlign: 'center',
+    fontWeight: '700',
+    lineHeight: 25
   },
   progressBar: {
     paddingLeft:30,

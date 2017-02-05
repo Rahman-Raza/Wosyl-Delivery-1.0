@@ -85,6 +85,13 @@ module.exports = StyleSheet.create({
         fontSize: 25,
         opacity: 0.8
     },
+    image: {
+      justifyContent: 'center',
+    width: 150,
+    height: 150,
+    margin: 10,
+     borderRadius: 75,
+  },
     profile: {
         backgroundColor: '#232232',
         paddingTop: 10,

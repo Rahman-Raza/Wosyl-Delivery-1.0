@@ -133,7 +133,7 @@ class RateRider extends Component {
                             </CardItem>
                             <CardItem style={{justifyContent: 'center'}}> 
                                 <Button style={styles.helpBtn} bordered >
-                                    <Text style={{color: '#797979',fontSize: 14,lineHeight: 16}}>NEED HELP?</Text>
+                                    <Text style={{color: '#000',fontSize: 14,lineHeight: 16}}>NEED HELP?</Text>
                                 </Button>
                             </CardItem>
                         </Card>
@@ -143,7 +143,7 @@ class RateRider extends Component {
                                 <Text note>Hyundai Xcent</Text>
                             </CardItem>
                             <CardItem style={{justifyContent: 'center'}}>
-                                <Text style={{textAlign: 'right',color: '#797979'}}>4.9 <Icon name='ios-star' style={styles.starIcon} /></Text>
+                                <Text style={{textAlign: 'right',color: '#000'}}>4.9 <Icon name='ios-star' style={styles.starIcon} /></Text>
                             </CardItem>
                         </Card>
     

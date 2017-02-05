@@ -51,6 +51,7 @@ function mapStateToProps(state) {
 
         return {
 
+          delivery_distance: state.route.pickup.delivery_distance,
           toLocation: state.route.pickup.toLocation,
           toLatitude: state.route.pickup.toLatitude,
           toLongtitude: state.route.pickup.toLongtitude,
@@ -190,7 +191,7 @@ class CreatePickup extends Component {
         
 
     var pickupItem = {"toLocation" : this.props.toLocation, "toLatitude": this.props.toLatitude, "toLongtitude" : this.props.toLongtitude, 
-    "fromLocation" : this.props.fromLocation,"fromLatitude": this.props.fromLatitude, "fromLongtitude" : this.props.fromLongtitude, "notes" : this.state.notes, "itemPickup" : this.state.itemPickup};
+    "fromLocation" : this.props.fromLocation,"fromLatitude": this.props.fromLatitude, "fromLongtitude" : this.props.fromLongtitude, "delivery_distance":this.props.delivery_distance, "notes" : this.state.notes, "itemPickup" : this.state.itemPickup};
     this.props.createPickup('placeOrder',pickupItem);
   }
     replaceRoute(route) {

@@ -11,6 +11,7 @@
 
 #import "RCTBundleURLProvider.h"
 #import "RCTRootView.h"
+#import "../../node_modules/react-native-orientation/iOS/RCTOrientation/Orientation.h"
 
 
 @implementation AppDelegate
@@ -35,4 +36,8 @@
   return YES;
 }
 
+
+- (UIInterfaceOrientationMask)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(UIWindow *)window {
+  return [Orientation getOrientation];
+}
 @end

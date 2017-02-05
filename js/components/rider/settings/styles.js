@@ -53,5 +53,50 @@ module.exports = StyleSheet.create({
     color: '#24BCD9',
     padding: 5
   },
+  regBtnContain: {
+    paddingVertical: 10,
+    paddingHorizontal: 10
+ },
+ regBtn: {
+    borderRadius: 0,
+    backgroundColor: '#19192B'
+ },
+  container: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "transparent",
+    },
+    buttonBar: {
+        flexDirection: "row",
+        position: "absolute",
+        bottom: 25,
+        right: 0,
+        left: 0,
+        justifyContent: "center"
+    },
+    button: {
+        padding: 10,
+        color: "#FFFFFF",
+        borderWidth: 1,
+        borderColor: "#FFFFFF",
+        margin: 5
+    },
+    buttonText: {
+        color: "#FFFFFF"
+    },
+    imageGrid: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center'
+  },
+    image: {
+      justifyContent: 'center',
+    width: 150,
+    height: 150,
+    margin: 10,
+     borderRadius: 75,
+  }
   
 });

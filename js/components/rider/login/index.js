@@ -2,9 +2,11 @@
 
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { View, Platform, Dimensions,StatusBar,Image } from 'react-native';
+import { View, Platform, Dimensions,StatusBar,Image, AsyncStorage } from 'react-native';
 
 import {  pushNewRoute } from '../../../actions/route';
+import { replaceRoute,popRoute} from '../../../actions/route';
+import {setUser} from '../../../actions/user';
 
 import { Content, Text, Button, Icon } from 'native-base';
 import { Grid, Col, Row } from 'react-native-easy-grid';
@@ -12,6 +14,7 @@ import { Grid, Col, Row } from 'react-native-easy-grid';
 import styles from './styles';
 import theme from '../../../themes/base-theme';
 
+var Orientation = require('react-native-orientation');
 var { width, height } = Dimensions.get('window');
 
 class BackgroundImage extends Component {
@@ -30,16 +33,131 @@ class BackgroundImage extends Component {
 }
 
 class Login extends Component {
+
+     setUser(users) {
+    this.props.setUser(users);
+  }
+    replaceRoute(route, userDetail) {
+        this.setUser(this.state.name);
+        this.props.replaceRoute(route,userDetail);
+    }
     
     pushNewRoute(route) {
          this.props.pushNewRoute(route);
     }
     
-    replaceRoute(route) {
-        this.props.replaceRoute(route);
-    } 
+    popRoute() {
+        this.props.popRoute();
+    }
+    
+   componentWillMount (){
+    var initial = Orientation.getInitialOrientation();
+    if (initial === 'PORTRAIT') {
+      //do stuff
+    } else {
+      //do other stuff
+    }
+   }
+
+   componentWillUnmount() {
+    Orientation.getOrientation((err,orientation)=> {
+      console.log("Current Device Orientation: ", orientation);
+    });
+    Orientation.removeOrientationListener(this._orientationDidChange);
+  }
+    
+   
+
+    componentDidMount (){
+
+       Orientation.lockToPortrait(); //this will lock the view to Portrait
+    //Orientation.lockToLandscape(); //this will lock the view to Landscape
+    //Orientation.unlockAllOrientations(); //this will unlock the view to all Orientations
+         AsyncStorage.multiGet(['token','userID']).then((data) => {
+            if (data[0][1]){
+                console.log("looking at data", data);
+                var password = data[0][1];
+                var user = data[1][1];
+
+                console.log("seeing pass and user", password, user);
+
+             fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/login.json', {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Accept': 'application/json',
+                                                        'Content-Type': 'application/json',
+                                                        'X-Auth-Token': '587a895e216fefe49218f651b1bd16f5',
+                                                      },
+                                                      body: JSON.stringify({
+                                                        
+                                                        email: data[1][1].toString(),
+                                                        password: data[0][1].toString(),
+                                                      })
+                                                    }) .then((response) => response.json())
+                                                          .then((responseJson) => {
+
+                                                            console.log("checking response at loginnn", responseJson);
+                                                            if (responseJson.success){
+
+                                                              
+                                                               this.setState({userDetail: responseJson.user});
+                                                              
+
+                                                                if(responseJson.user.is_phone_verified ){
+                                                                    this.setState({is_driver_verified:responseJson.user.is_driver_verified});
+
+                                                                    if(responseJson.user.is_driver_verified){
+                                                                     
+                                                                      this.replaceRoute('home',responseJson.user);
+
+                                                                    }
+
+                                                                    else{
+
+
+                                                                    this.props.setUser(responseJson.user);
+                                                                     console.log("responseUser checkkk", responseJson.users);
+                                                                    
+                                                                 this.replaceRoute('home',responseJson.user);
+                                                                  }
+                                                                }
+
+                                                                 else{
+                                                                    this.state ={
+                                                                      is_activated: responseJson.use.is_activated,
+                                                                      
+                                                                      
+                                                                    };
+
+                                                                    if(this.state.is_activated){
+
+
+                                                                    this.replaceRoute('PhoneVerify',responseJson.user);
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            else{
+                                                                
+
+
+
+                                                            }
+                                                          })
+                                                          .catch((error) => {
+                                                            console.error(error);
+                                                          })
+                                                      }
+        })
+    }
+
+
+
     render() {
-        return (
+
+
+          
+                return (
                 <View >
                     <StatusBar barStyle='light-content' />
                     <Content theme={theme} style={{backgroundColor: '#19192B'}}>
@@ -53,11 +171,6 @@ class Login extends Component {
                               </Image>
                                 <Text style={styles.logoText}>Wosyl Delivery</Text>
                             </View>
-                       
-                        
-
-                    
-
                         <View style={{marginTop: 300, padding: 10, backgroundColor: '#fff'}}>
                             <Grid>
                                 <Col style={{padding: 10}}>
@@ -72,15 +185,28 @@ class Login extends Component {
                     </Content>
                     
                 </View>
-        )
+            )
+
+           
+       
+
+
+        
     }
 }
 
 
 function bindActions(dispatch){
     return {
-        pushNewRoute:(route)=>dispatch(pushNewRoute(route)),
-        replaceRoute:(route)=>dispatch(replaceRoute(route)),
+        
+        
+         replaceRoute:(route,userDetail)=>dispatch(replaceRoute(route,userDetail)),
+        popRoute: () => dispatch(popRoute()),
+         
+        pushNewRoute: (route) => dispatch(pushNewRoute(route)),
+        
+        
+        setUser: (name) => dispatch(setUser(name)),
     }
 }
 

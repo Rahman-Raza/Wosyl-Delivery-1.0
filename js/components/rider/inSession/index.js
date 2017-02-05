@@ -1,4 +1,4 @@
-'use strict';
+ 'use strict';
 
 import React, { Component } from 'react';
 
@@ -10,11 +10,12 @@ import LoadingOverlay from '../LoadingOverlay';
 import AwesomeButton from 'react-native-awesome-button';
 import ActionCable from 'react-native-actioncable';
  var {CountDownText} = require('react-native-sk-countdown');
+ import StarRating from 'react-native-star-rating';
 
-import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, TouchableOpacity } from 'react-native';
+import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, TouchableOpacity, TextInput} from 'react-native';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
 import {  TouchableHighlight} from 'react-native';
-import Modal from 'react-native-simple-modal';
+
 
 
 import Form from 'react-native-form'
@@ -27,7 +28,7 @@ import { openDrawer } from '../../../actions/drawer';
 import { Header, Content, Text, Button, Icon, Card, Title, InputGroup, Input, Thumbnail, CardItem,Container } from 'native-base';
 import { Grid, Col, Row } from 'react-native-easy-grid';
 const accessToken = 'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw';
-
+import Modal from 'react-native-animated-modal'; 
 
 import Mapbox from 'react-native-mapbox-gl';
 Mapbox.setAccessToken(accessToken);
@@ -78,10 +79,13 @@ class InSession extends Component {
        
         
           this.state = {
+
+            ratingText: '',
+            starCount: 1,
             pickedUP: false,
             droppedOff: false,
             spinnerVisible: true,
-
+            orderCompleted: false,
             message: '',
             open: false,
             progress: 0.25,
@@ -94,7 +98,7 @@ class InSession extends Component {
             toLongtitude: 0,
             itemPickup: '',
             notes: '',
-
+            isModalVisible: false,
 
             animationType: 'none',
       modalVisible: true,
@@ -137,6 +141,11 @@ class InSession extends Component {
  setModalVisible (visible) {
     this.setState({modalVisible: visible});
   }
+
+  _showModal = () => this.setState({ isModalVisible: true })
+
+  _hideModal = () => this.setState({ isModalVisible: false })
+
   
 
  
@@ -277,7 +286,7 @@ class InSession extends Component {
 
       this.setState({spinnerVisible: false});
       this.setState({open:true});
-      console.log("accepted pickup", info);
+      console.log("checking data for pickupID fam", info.data.pickup);
 
       this.setState({fooditems: "allthefood"});
 
@@ -287,6 +296,7 @@ class InSession extends Component {
       this.setState({fromLatitude: parseFloat(info.data.pickup.driver.latitude)});
       this.setState({fromLongtitude: parseFloat(info.data.pickup.driver.longitude)});
       this.setState({center: {latitude: parseFloat(info.data.pickup.driver.latitude), longitude: parseFloat(info.data.pickup.driver.longitude)}});
+      this.setState({pickupID: info.data.pickup.id});
       
       this.drawRoute(info);
 
@@ -428,6 +438,12 @@ class InSession extends Component {
       });
    }
 
+   componentWillUnmount () {
+        App.comments &&
+            App.cable.subscriptions.remove(App.comments);
+            console.log("finished removing websocket");
+    }
+
 
     AcceptOrder = (pickup_driver_id) => {
 
@@ -473,6 +489,56 @@ class InSession extends Component {
 
 }
 
+onStarRatingPress = (rating) => {
+    this.setState({
+      starCount: rating
+    });
+  }
+completeOrder = () =>{
+  this.setState({open: false});
+  this.setState({orderCompleted: true});
+}
+
+submitRating = () =>{
+console.log("checking pickupID worked or not", this.state.pickupID);
+console.log("checking auth token for rating", this.props.auth_token);
+
+  fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/'+this.state.pickupID+'/give_comment_and_rating.json' , {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Accept': 'application/json',
+                                                        'Content-Type': 'application/json',
+                                                        'X-Auth-Token': this.props.auth_token,
+                                                      },
+                                                      body: JSON.stringify({
+                                                        comment: this.state.ratingText,
+                                                        rating: this.state.starCount,
+
+                                                        
+                                                        
+                                                      })
+                                                    }) .then((response) => response.json())
+                                                          .then((responseJson) => {
+
+                                                            console.log("json worked for star rating", responseJson);
+
+                                                            
+                                                            if (responseJson.success){
+                                                              console.log("place review on order success");
+                                                              console.log(responseJson);
+                                                               this.props.replaceOrPushRoute('home');
+                                                                 
+                                                            }
+
+                                                            else{
+                                                              
+                                                                this.props.replaceOrPushRoute('home');
+                                                                 
+                                                             
+
+                                                            }
+                                                          })
+}
 
 
     componentDidMount() {
@@ -604,7 +670,7 @@ class InSession extends Component {
                            </Button>
                            <Title> </Title>
                        </Header>
-            </View>{this.state.spinnerVisible &&
+            </View>{this.state.spinnerVisible && 
                 <View style={{marginTop: 250, alignItems: 'center',marginBottom:150,backgroundColor: '#000', opacity: .8 }} >
                 
                  
@@ -647,7 +713,7 @@ class InSession extends Component {
 
                 
             }{this.state.open && 
-          <Container style={{marginTop:225}}>
+          <Container style={{marginTop:125}}>
                 <Content style={{ opacity: .8}}>
                     <Card>
                         <CardItem style={{alignItems: 'center'}}>
@@ -657,24 +723,77 @@ class InSession extends Component {
                         </CardItem>
 
                         <CardItem style={{alignItems: 'center'}}>
-                            <Image style={{width: 150, height: 150, alignItems: 'center',marginLeft:100}} source={{uri: this.state.driver_image}} />
+                            <Image style={{justifyContent: 'center',
+                                            width: 150,
+                                            height: 150,
+                                            margin: 10,
+                                             borderRadius: 75,marginLeft:100}} source={{uri: this.state.driver_image}} />
                         </CardItem>
 
                         <CardItem>
                             <Grid>  
                         <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
                         <Col style={{padding: 10,alignItems: 'center'}}>{(!this.state.pickedUP && !this.state.droppedOff)&&<Text style={{fontWeight: '600',color: '#000', opacity: .99, marginTop:20}}>Your Driver is on his way!</Text>}{this.state.pickedUP && <Text style={{fontWeight: '600',color: '#000', opacity: .99, marginTop:20}}> Your Driver has picked up your order</Text>}{this.state.droppedOff &&
-                          <Text style={{fontWeight: '600',color: '#000', opacity: .99, marginTop:20}}> Your driver is here with your order, thank you for using Wosyl! </Text>}{this.state.droppedOff && <Button style={{marginLeft:100}}rounded onPress={() => this.props.replaceOrPushRoute("home")} >
-                          <Text style={{fontWeight: '600',color: '#000'}}>Order again</Text>
-                          </Button>}
+                          <Text style={{fontWeight: '600',color: '#000', opacity: .99, marginTop:20}}> Your driver is here with your order, thank you for using Wosyl! </Text>}{this.state.droppedOff && <Button style={{marginLeft:100,marginTop:10}}rounded onPress={() => this.completeOrder()} >
+                          <Text style={{fontWeight: '800',color: '#000'}}>Comment and Rate</Text>
+                          </Button>}</Col>
+                        </View>
+                            </Grid>
+                        </CardItem>
+                   </Card>
+                </Content>
+            </Container>}{this.state.orderCompleted && 
+          <Container style={{marginTop:225}}>
+                <Content style={{ opacity: .9}}>
+                    <Card>
+                        <CardItem style={{alignItems: 'center'}}>
+                            
+                            <Text>Please Rate your Driver : Jose</Text>
+                            
+                        </CardItem>
+
+                        <CardItem >
+                            <Grid>  
+                        
+                        <Col style={{padding: 10,alignItems: 'center'}}>
+                        <TextInput
+                                {...this.props} // Inherit any props passed to it; e.g., multiline, numberOfLines below
+                                editable = {true}
+                                maxLength = {140}
+                                multiline = {true}
+                                placeholder= 'Please comment on your delivery'
+                                style={{height: 60, borderColor: 'gray', borderWidth: 1}}
+                                onChangeText={(text) => this.setState({ratingText: text})}
+                                value={this.state.ratingText}/>
+                         
+                        </Col>
+                        
+                            </Grid>
+                        </CardItem>
+
+                        <CardItem>
+                            <Grid>  
+                        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                        <Col style={{padding: 10,alignItems: 'center'}}>
+                      
+                         <StarRating 
+                                disabled={false}
+                                maxStars={5}
+                                rating={this.state.starCount}
+                                selectedStar={(rating) => this.onStarRatingPress(rating)}
+                                starColor={'#3DA000'}/>
+
+
+                                <Button style={{marginLeft: 40, marginTop:10}} rounded onPress={() => this.submitRating()} >
+                          <Text style={{fontWeight: '600',color: '#fff'}}>Submit Review</Text>
+                          </Button>
                         </Col>
                         </View>
                             </Grid>
                         </CardItem>
                    </Card>
                 </Content>
-            </Container>}<View style={styles.modalStyle}>
-            </View>
+            </Container>}
             </View>
         )
     }
