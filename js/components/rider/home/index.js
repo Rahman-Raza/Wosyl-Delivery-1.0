@@ -90,6 +90,7 @@ class Home extends Component {
        
         
           this.state = {
+            bounceValue: new Animated.Value(0);
             open: false,
           currentLocation : {description: 'Current Location', geometry: { location: { lat: 48.8496818, lng: 2.2940881 } }},
             alreadyPaid: false,
@@ -273,7 +274,14 @@ distance_extractor = (data) => {
 
     componentDidMount() {
 
-   
+   this.state.bounceValue.setValue(1.5);     // Start large
+    Animated.spring(                          // Base: spring, decay, timing
+      this.state.bounceValue,                 // Animate `bounceValue`
+      {
+        toValue: 0.8,                         // Animate to smaller size
+        friction: 1,                          // Bouncier spring
+      }
+    ).start();
       Orientation.lockToPortrait(); //this will lock the view to Portrait
     //Orientation.lockToLandscape(); //this will lock the view to Landscape
     //Orientation.unlockAllOrientations(); //this will unlock the view to all Orientations
@@ -577,7 +585,7 @@ distance_extractor = (data) => {
                                     </Modal>
                                 
                       
-                      <View style={styles.modalStyle}>
+                      <Animated.View style={styles.modalStyle}>
                         <View style={{padding: 10}}>
                         
        

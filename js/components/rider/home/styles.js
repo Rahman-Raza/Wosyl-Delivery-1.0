@@ -183,7 +183,11 @@ module.exports = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 50,
-    backgroundColor: 'transparent'
+    backgroundColor: 'transparent',
+    flex: 1,
+          transform: [                        // `transform` is an ordered array
+            {scale: this.state.bounceValue},  // Map `bounceValue` to `scale`
+          ],
 
     
   },

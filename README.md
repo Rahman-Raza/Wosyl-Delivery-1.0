@@ -37,14 +37,7 @@ Once all necessary dependencies are installed:
 5. "To launch application:" react-native run-ios (for iOS)
 	
 	5.1 react-native run-android (for Android)
- 
 
-
-
-Testing
-----------------------------------------------
-
-How do you run the tests?
 
 
 
@@ -61,7 +54,7 @@ Multiple third party compoenents where used
 
 
 
-Known Issues / Gotcha
+Known Issues
 ----------------------------------------------
 There are sometimes dependencies issues with the componenet API's used such
 as Google Directions, Google Places Autocomplete and Mapbox GL.
