@@ -90,7 +90,9 @@ class Home extends Component {
        
         
           this.state = {
-            bounceValue: new Animated.Value(0);
+            firstOption: true,
+            secondOptions: false,
+            
             open: false,
           currentLocation : {description: 'Current Location', geometry: { location: { lat: 48.8496818, lng: 2.2940881 } }},
             alreadyPaid: false,
@@ -150,6 +152,20 @@ class Home extends Component {
  setModalVisible (visible) {
     this.setState({modalVisible: visible});
   }
+
+  goBack(){
+this.setState({secondOptions: false});
+     this.setState({firstOption:true});
+      
+
+  }
+
+  sendPickup(){
+     var pickupItem = {"toLocation" : this.state.toLocation, "toLatitude": this.state.toLatitude, "toLongtitude" : this.state.toLongtitude, 
+    "fromLocation" : this.state.fromLocation,"fromLatitude": this.state.fromLatitude, "fromLongtitude" : this.state.fromLongtitude, "delivery_distance":this.state.delivery_distance, "notes" : this.state.notes, "itemPickup" : this.state.itemPickup};
+    this.props.createPickup('placeOrder',pickupItem);
+  }
+
  createPickup(){
 
         this.setState({modalVisible: false});
@@ -164,7 +180,10 @@ class Home extends Component {
     }
 
     else{
-    this.props.createPickup('createPickup',pickupItem);
+      this.setState({pickupPackage: pickupItem});
+      this.setState({firstOption:false});
+      this.setState({secondOptions: true});
+    // this.props.createPickup('createPickup',pickupItem);
     }
   }
   
@@ -209,6 +228,11 @@ componentWillMount(){
     this.setState({visiblePadding: 0})
   }
 
+passNonce = (nonce) => {
+console.log("got to nonce");
+  
+}
+
 setupBraintree = () => {
 
 console.log("checking first  auth_token", this.props.auth_token);
@@ -237,30 +261,50 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                                                           })
 
 
-  setTimeout(function () {  BTClient.showPaymentViewController().then(function(nonce) {
-    //callback after the user completes (or cancels) the flow.
-    //with the nonce, you can now pass it to your server to create a charge against the user's payment method
-    fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/save_nonce.json', {
-      method: "POST",
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-Auth-Token': this.props.auth_token,
-      },
-      body: JSON.stringify({payment_method_nonce: nonce})
-    }) .then((response) => response.json())
+   
+   setTimeout(() => {
+      BTClient.showPaymentViewController()
+          .then(function(nonce) {
+            //payment succeeded, pass nonce to server
+            console.log("payment passed");
+            //console.log("here the prop", this.props.auth_token);
+            console.log("here the nonce", nonce);
+            fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/save_nonce.json' , {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Accept': 'application/json',
+                                                        'Content-Type': 'application/json',
+                                                        'X-Auth-Token': this.props.auth_token,
+                                                      },
+                                                      body: JSON.stringify({
+                                                        payment_method_nonce: nonce,
+
+                                                        
+                                                        
+                                                      })
+                                                    }) .then((response) => response.json())
                                                           .then((responseJson) => {
 
-                                                            console.log("json worked for saving braintree nonce",responseJson);
-                                                            
-                                                            
-                                                            
+                                                            console.log("json worked passing nonce", responseJson);
 
                                                             
+                                                            if (responseJson.success){
+                                                              console.log("passing nonce success");
+                                                             
+                                                                 
+                                                            }
+
+                                              
                                                           })
-  }); }, 500);
 
 
+
+
+          })
+          .catch(function(err) {
+            //console.error(err);
+          });
+    }, 2000);
 
 
 
@@ -274,14 +318,7 @@ distance_extractor = (data) => {
 
     componentDidMount() {
 
-   this.state.bounceValue.setValue(1.5);     // Start large
-    Animated.spring(                          // Base: spring, decay, timing
-      this.state.bounceValue,                 // Animate `bounceValue`
-      {
-        toValue: 0.8,                         // Animate to smaller size
-        friction: 1,                          // Bouncier spring
-      }
-    ).start();
+    
       Orientation.lockToPortrait(); //this will lock the view to Portrait
     //Orientation.lockToLandscape(); //this will lock the view to Landscape
     //Orientation.unlockAllOrientations(); //this will unlock the view to all Orientations
@@ -582,11 +619,9 @@ distance_extractor = (data) => {
                                              
                                           </TouchableOpacity>
                                        </View>
-                                    </Modal>
-                                
-                      
-                      <Animated.View style={styles.modalStyle}>
-                        <View style={{padding: 10}}>
+                                    </Modal>{this.state.firstOption && 
+
+                                      <View style={{padding: 10}}>
                         
        
                    
@@ -734,12 +769,7 @@ distance_extractor = (data) => {
 
                               
                             
-                        </View>
-                    
-
-
-                        
-                        
+                        </View>}{ this.state.firstOption &&
                         <View style={{padding: 10, paddingBottom: this.state.visiblePadding}}>
                        
                             <GooglePlacesAutocomplete
@@ -887,8 +917,8 @@ distance_extractor = (data) => {
                                 
                             </GooglePlacesAutocomplete>
                             
-                        </View>
-                        <View style={{padding: 10}}>
+                        </View>}{this.state.firstOption &&
+                          <View style={{padding: 10}}>
 
 
                         <Button rounded block style={{marginLeft: 30, marginRight:30, borderColor:'#fff', marginBottom:10}}  onPress={() => {
@@ -908,12 +938,62 @@ distance_extractor = (data) => {
                                >
                                <Text style={styles.buttonText}>Continue</Text>
                         </Button>
-                        </View>
-                       
 
+                         <Button rounded block style={{marginLeft: 30, marginRight:30, borderColor:'#fff', marginBottom:10}}  onPress={() => {
+                              this.setupBraintree();
+                                  
+                                      
+                                  }
+                               }
+                               >
+                               <Text style={styles.buttonText}>Paypal</Text>
+                        </Button>
+                        </View>}{this.state.secondOptions &&
+
+                          <View style={{marginTop: 20}}>
+               
+                       
+               
+                     
+                        <View style={{padding: 10}}>
+                       
+                           <InputGroup  borderType='rounded' style={{marginLeft: 30, marginRight:30, color:'#000', backgroundColor:'#fff'}}>
+                                  <Icon name='ios-briefcase' style={{color:'#16ADD4'}}/>
+                                <Input  onChangeText={(text) => this.setState({itemPickup:text})} value={this.state.itemPickup}placeholder="Item"  placeholderTextColor="#000" />
+                            </InputGroup>
+                            
+                        </View>
+
+                       
+                        <View style={{padding: 10, paddingBottom: this.state.visiblePadding}}>
+                       <InputGroup borderType='rounded' style={{marginLeft: 30, marginRight:30, color:'#000', backgroundColor:'#fff'}}>
+                                <Icon name='ios-paper' style={{color:'#16ADD4'}}/>
+                                <Input onChangeText={(text) => this.setState({notes:text})} value={this.state.notes}placeholder="Notes"  placeholderTextColor="#000" />
+                            </InputGroup>
+                            
+                            
+                        </View>
+                        
+                        <View style={{padding: 10}}>
+                          <Button rounded  block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => {this.sendPickup()}}
+                          underlayColor='#99d9f4'>
+                            <Text style={styles.buttonText}>Next</Text>
+                          </Button>
+                        </View>
+
+                        <View style={{padding: 10}}>
+                          <Button rounded  block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => {this.goBack()}}
+                          underlayColor='#99d9f4'>
+                            <Text style={styles.buttonText}>Back</Text>
+                          </Button>
+                        </View>
+                        
                      </View>
-                 
-                </View>
+
+
+
+
+                        }</View>
                 
                
         )

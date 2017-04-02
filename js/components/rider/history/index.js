@@ -298,17 +298,7 @@ this.setMapZoom();
                                                                }
 
 
-                                                                for (var i = 0; i < responseJson.pickups.length; i++){
-
-                                                                  
-                                                                this.drawRoute(responseJson.pickups[i],i);
-
-                                                                if (i == 4){
-                                                                  console.log("breaking now");
-                                                                  break;
-                                                                }
-
-                                                              }
+                                                               console.log("checking orders array 1 ", this.state.ordersArray);
                                                               this.setState({processedData: true});
                                                               console.log("checking pickups length",responseJson.pickups.length );
                                                                 
@@ -436,38 +426,7 @@ render() {
                         <View style={{padding: 15}}>
 
                        <Card style={{position:'relative'}}>
-                                <CardItem style={styles.mapContainer}>
-
-                                {(this.state.visible) ?
-                        (<MapView ref={map => { this.map[0] = map; }}
-                            style={styles.map}
-                             styleURL={Mapbox.mapStyles.dark}   
-                            rotateEnabled={false}
-                            zoomEnabled={true}
-                            showsUserLocation={true}
-                            attributionButtonIsHidden = {false}
-                            logoIsHidden = {true}
-                            compassIsHidden = {true}
-                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
-                            initalZoomLevel = {13}
-                            centerCoordinate={this.state.center}
-                            userLocationVisible={true}
-                            userTrackingMode = {Mapbox.userTrackingMode.follow}
-                             annotations={this.state.annotations[0]}
-                            annotationsAreImmutable
-                            onFinishLoadingMap = {this.onFinishLoadingMap()}
-                            debugActive={false}
-                            direction={this.state.direction}
-                            scrollEnabled = {false}
-                            
-                            onOpenAnnotation={this.onOpenAnnotation}
-                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
-                        : <View />
-                        }
-                                    
-
-
-                                </CardItem>
+                                
                                  <CardItem style={styles.detailContainer}>
                                     <Thumbnail square source={{uri: this.state.ordersArray[0].driver.drivers_license_image_thumb_url}} size={40} style={styles.driverImage} />
                                     
@@ -495,38 +454,7 @@ render() {
                         <View style={{padding: 15}}>
 
                        <Card style={{position:'relative'}}>
-                                <CardItem style={styles.mapContainer}>
-
-                                {(this.state.visible) ?
-                        (<MapView ref={map => { this.map[1] = map; }}
-                            style={styles.map}
-                             styleURL={Mapbox.mapStyles.dark}   
-                            rotateEnabled={false}
-                            zoomEnabled={true}
-                            showsUserLocation={true}
-                            attributionButtonIsHidden = {false}
-                            logoIsHidden = {true}
-                            compassIsHidden = {true}
-                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
-                            initalZoomLevel = {13}
-                            centerCoordinate={this.state.center}
-                            userLocationVisible={true}
-                            userTrackingMode = {Mapbox.userTrackingMode.follow}
-                             annotations={this.state.annotations[1]}
-                            annotationsAreImmutable
-                            onFinishLoadingMap = {this.onFinishLoadingMap()}
-                            debugActive={false}
-                            direction={this.state.direction}
-                            scrollEnabled = {false}
-                            
-                            onOpenAnnotation={this.onOpenAnnotation}
-                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
-                        : <View />
-                        }
-                                    
-
-
-                                </CardItem>
+                               
                                  <CardItem style={styles.detailContainer}>
                                     <Thumbnail square source={{uri: this.state.ordersArray[1].driver.drivers_license_image_thumb_url}} size={40} style={styles.driverImage} />
                                     
@@ -554,38 +482,7 @@ render() {
                         <View style={{padding: 15}}>
 
                        <Card style={{position:'relative'}}>
-                                <CardItem style={styles.mapContainer}>
-
-                                {(this.state.visible) ?
-                        (<MapView ref={map => { this.map[2] = map; }}
-                            style={styles.map}
-                             styleURL={Mapbox.mapStyles.dark}   
-                            rotateEnabled={false}
-                            zoomEnabled={true}
-                            showsUserLocation={true}
-                            attributionButtonIsHidden = {false}
-                            logoIsHidden = {true}
-                            compassIsHidden = {true}
-                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
-                            initalZoomLevel = {13}
-                            centerCoordinate={this.state.center}
-                            userLocationVisible={true}
-                            userTrackingMode = {Mapbox.userTrackingMode.follow}
-                             annotations={this.state.annotations[2]}
-                            annotationsAreImmutable
-                            onFinishLoadingMap = {this.onFinishLoadingMap()}
-                            debugActive={false}
-                            direction={this.state.direction}
-                            scrollEnabled = {false}
-                            
-                            onOpenAnnotation={this.onOpenAnnotation}
-                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
-                        : <View />
-                        }
-                                    
-
-
-                                </CardItem>
+                               
                                  <CardItem style={styles.detailContainer}>
                                     <Thumbnail square source={{uri: this.state.ordersArray[2].driver.drivers_license_image_thumb_url}} size={40} style={styles.driverImage} />
                                     
@@ -613,38 +510,7 @@ render() {
                         <View style={{padding: 15}}>
 
                        <Card style={{position:'relative'}}>
-                                <CardItem style={styles.mapContainer}>
-
-                                {(this.state.visible) ?
-                        (<MapView ref={map => { this.map[3] = map; }}
-                            style={styles.map}
-                             styleURL={Mapbox.mapStyles.dark}   
-                            rotateEnabled={false}
-                            zoomEnabled={true}
-                            showsUserLocation={true}
-                            attributionButtonIsHidden = {false}
-                            logoIsHidden = {true}
-                            compassIsHidden = {true}
-                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
-                            initalZoomLevel = {13}
-                            centerCoordinate={this.state.center}
-                            userLocationVisible={true}
-                            userTrackingMode = {Mapbox.userTrackingMode.follow}
-                             annotations={this.state.annotations[3]}
-                            annotationsAreImmutable
-                            onFinishLoadingMap = {this.onFinishLoadingMap()}
-                            debugActive={false}
-                            direction={this.state.direction}
-                            scrollEnabled = {false}
-                            
-                            onOpenAnnotation={this.onOpenAnnotation}
-                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
-                        : <View />
-                        }
-                                    
-
-
-                                </CardItem>
+                               
                                  <CardItem style={styles.detailContainer}>
                                     <Thumbnail square source={{uri: this.state.ordersArray[3].driver.drivers_license_image_thumb_url}} size={40} style={styles.driverImage} />
                                     
@@ -672,38 +538,7 @@ render() {
                         <View style={{padding: 15}}>
 
                        <Card style={{position:'relative'}}>
-                                <CardItem style={styles.mapContainer}>
-
-                                {(this.state.visible) ?
-                        (<MapView ref={map => { this.map[4] = map; }}
-                            style={styles.map}
-                             styleURL={Mapbox.mapStyles.dark}   
-                            rotateEnabled={false}
-                            zoomEnabled={true}
-                            showsUserLocation={true}
-                            attributionButtonIsHidden = {false}
-                            logoIsHidden = {true}
-                            compassIsHidden = {true}
-                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
-                            initalZoomLevel = {13}
-                            centerCoordinate={this.state.center}
-                            userLocationVisible={true}
-                            userTrackingMode = {Mapbox.userTrackingMode.follow}
-                             annotations={this.state.annotations[4]}
-                            annotationsAreImmutable
-                            
-                            debugActive={false}
-                            direction={this.state.direction}
-                            scrollEnabled = {false}
-                            
-                            onOpenAnnotation={this.onOpenAnnotation}
-                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
-                        : <View />
-                        }
-                                    
-
-
-                                </CardItem>
+                                
                                  <CardItem style={styles.detailContainer}>
                                     <Thumbnail square source={{uri: this.state.ordersArray[4].driver.drivers_license_image_thumb_url}} size={40} style={styles.driverImage} />
                                     

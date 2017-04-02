@@ -748,7 +748,7 @@ console.log("checking auth token for rating", this.props.auth_token);
                     <Card>
                         <CardItem style={{alignItems: 'center'}}>
                             
-                            <Text>Please Rate your Driver : Jose</Text>
+                            <Text>Please Rate your Driver {this.state.first_name}</Text>
                             
                         </CardItem>
 

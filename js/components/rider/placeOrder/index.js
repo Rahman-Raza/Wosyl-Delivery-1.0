@@ -10,6 +10,8 @@ import { createSession } from '../../../actions/route';
 import { Container, Header, Text, Button, Icon, InputGroup, Input } from 'native-base';
 import { Grid, Col, Row } from 'react-native-easy-grid';
 
+var BTClient = require('react-native-braintree-xplat');
+
 import styles from './styles';
 import theme from '../../../themes/base-theme';
 import Modal from 'react-native-simple-modal';
@@ -48,7 +50,127 @@ class placeOrder extends Component {
       this.props.createSession('inSession',response);
     }
 
-    
+createOrder = () => {
+  fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/create.json', {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Accept': 'application/json',
+                                                        'Content-Type': 'application/json',
+                                                        'X-Auth-Token': this.props.userDetail.access_token,
+                                                      },
+                                                      body: JSON.stringify({
+                                                        pickup_from : this.props.fromLocation,
+                                                        from_latitude: this.props.fromLatitude,
+                                                        from_longitude: this.props.fromLongtitude,
+                                                        pickup_to: this.props.toLocation,
+                                                        to_latitude: this.props.toLatitude,
+                                                        to_longitude: this.props.toLongtitude,
+                                                        item: this.props.itemPickup,
+                                                        notes: this.props.notes,
+
+                                                        
+                                                        
+                                                      })
+                                                    }) .then((response) => response.json())
+                                                          .then((responseJson) => {
+
+                                                            console.log("json worked for create pickup");
+                                                            
+                                                            if (responseJson.success){
+                                                              console.log("create pickup success");
+                                                              console.log(responseJson);
+                                                               this.createSession(responseJson);
+                                                                 
+                                                            }
+
+                                                            else{
+                                                              this.setState({open: true});
+                                                                
+                                                                 
+                                                             
+
+                                                            }
+                                                          })
+}
+    setupBraintree = () => {
+
+console.log("checking first  auth_token", this.props.auth_token);
+fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_token.json', {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Accept': 'application/json',
+                                                        'Content-Type': 'application/json',
+                                                        'X-Auth-Token': this.props.userDetail.access_token,
+                                                      },
+                                                    
+                                                    }) .then((response) => response.json())
+                                                          .then((responseJson) => {
+
+                                                            console.log("json worked for braintree token",responseJson);
+                                                            console.log("checking auth_token", this.props.auth_token);
+                                                            
+                                                            if (responseJson.success){
+                                                              console.log("checking BTC token",responseJson.token );
+                                                              BTClient.setup(responseJson.token);
+                                                               
+                                                                 
+                                                            }
+
+                                                            
+                                                          })
+
+
+   
+   setTimeout(() => {
+      BTClient.showPaymentViewController()
+          .then(function(nonce) {
+            //payment succeeded, pass nonce to server
+            console.log("payment passed");
+            //console.log("here the prop", this.props.auth_token);
+            console.log("here the nonce", nonce);
+           // this.createOrder();
+            fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/save_nonce.json' , {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Accept': 'application/json',
+                                                        'Content-Type': 'application/json',
+                                                        'X-Auth-Token': this.props.userDetail.access_token,
+                                                      },
+                                                      body: JSON.stringify({
+                                                        payment_method_nonce: nonce,
+
+                                                        
+                                                        
+                                                      })
+                                                    }) .then((response) => response.json())
+                                                          .then((responseJson) => {
+
+                                                            console.log("json worked passing nonce", responseJson);
+
+                                                            
+                                                            if (responseJson.success){
+                                                              console.log("passing nonce success");
+                                                             
+                                                                 
+                                                            }
+
+                                              
+                                                          })
+
+
+
+
+          })
+          .catch(function(err) {
+            //console.error(err);
+          });
+    }, 2000);
+
+
+
+
+
+}
     
     
     render() {
@@ -119,47 +241,10 @@ class placeOrder extends Component {
                     console.log(this.props.fromLatitude);
                     console.log(this.props.toLatitude);
 
+                    this.setupBraintree();
 
-                    fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/create.json', {
-                                                      method: 'POST',
-                                                      headers: {
-                                                        'Accept': 'application/json',
-                                                        'Content-Type': 'application/json',
-                                                        'X-Auth-Token': this.props.userDetail.access_token,
-                                                      },
-                                                      body: JSON.stringify({
-                                                        pickup_from : this.props.fromLocation,
-                                                        from_latitude: this.props.fromLatitude,
-                                                        from_longitude: this.props.fromLongtitude,
-                                                        pickup_to: this.props.toLocation,
-                                                        to_latitude: this.props.toLatitude,
-                                                        to_longitude: this.props.toLongtitude,
-                                                        item: this.props.itemPickup,
-                                                        notes: this.props.notes,
 
-                                                        
-                                                        
-                                                      })
-                                                    }) .then((response) => response.json())
-                                                          .then((responseJson) => {
-
-                                                            console.log("json worked for create pickup");
-                                                            
-                                                            if (responseJson.success){
-                                                              console.log("create pickup success");
-                                                              console.log(responseJson);
-                                                               this.createSession(responseJson);
-                                                                 
-                                                            }
-
-                                                            else{
-                                                              this.setState({open: true});
-                                                                
-                                                                 
-                                                             
-
-                                                            }
-                                                          })
+                    
                                                           
 
 
