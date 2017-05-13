@@ -22,6 +22,8 @@ import {
 
 var { width, height } = Dimensions.get('window');
 
+var passedNonce = false;
+
 class placeOrder extends Component {
     constructor(props) {
       super(props);
@@ -46,7 +48,8 @@ class placeOrder extends Component {
         this.props.replaceRoute(route);
     } 
 
-    createSession(response){
+    createSession = (response) => {
+      console.log("got to passedNonce");
       this.props.createSession('inSession',response);
     }
 
@@ -79,7 +82,9 @@ createOrder = () => {
                                                             if (responseJson.success){
                                                               console.log("create pickup success");
                                                               console.log(responseJson);
-                                                               this.createSession(responseJson);
+
+                                                              this.createSession(responseJson);
+                                                              
                                                                  
                                                             }
 
@@ -92,86 +97,138 @@ createOrder = () => {
                                                             }
                                                           })
 }
-    setupBraintree = () => {
+     
 
-console.log("checking first  auth_token", this.props.auth_token);
-fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_token.json', {
+    
+    setupBraintree = (pickupObject) => {
+
+      var access_token = this.props.userDetail.access_token;
+      var cost = this.props.cost;
+     
+
+      console.log("checking first  auth_token", this.props.auth_token);
+      fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_token.json', {
+                                                            method: 'POST',
+                                                            headers: {
+                                                              'Accept': 'application/json',
+                                                              
+                                                              'X-Auth-Token': this.props.userDetail.access_token,
+                                                            },
+                                                          
+                                                          }) .then((response) => response.json())
+                                                                .then((responseJson) => {
+
+                                                                  console.log("json worked for braintree token",responseJson);
+                                                                  console.log("checking auth_token", this.props.auth_token);
+                                                                  
+                                                                  if (responseJson.success){
+                                                                    console.log("checking BTC token",responseJson.token );
+                                                                    BTClient.setup(responseJson.token);
+                                                                    this.passNonceToServer(pickupObject);
+                                                                     
+                                                                       
+                                                                  }
+
+                                                                  
+                                                                })
+
+        console.log("check cost and pickup id",this.props.cost, pickupObject.pickup.id);
+
+      
+    }
+
+    creatingSession = (pickupObject) => {
+      this.createSession(pickupObject);
+    }
+
+    passNonceToServer = (pickupObject) =>{
+
+       var access_token = this.props.userDetail.access_token;
+      var cost = this.props.cost;
+      var noncePass = false;
+
+      var scope = this;
+      
+      function createTheSession(){
+        console.log("got to createTheSession");
+        scope.createSession(pickupObject);
+      }
+
+      setTimeout(() => {
+            BTClient.showPaymentViewController()
+                .then(function(nonce) {
+
+
+
+                  //payment succeeded, pass nonce to server
+                  console.log("payment passed");
+                  //console.log("here the prop", this.props.auth_token);
+                  console.log("here the nonce", nonce);
+
+                  console.log("check pickupObject", pickupObject);
+                  console.log("postman info for passing nonce to server: access_token, nonce, amount, pickup id", access_token, nonce, cost, pickupObject.pickup.id);
+                  var paymentObject = {"pickup_id" : pickupObject.pickup.id, "amount" : cost, "payment_method_nonce" : nonce};
+                  var JSONObject = JSON.stringify(paymentObject);
+                  console.log("checking JSON pay object", JSONObject);
+                 
+                  fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/save_nonce.json', {
                                                       method: 'POST',
                                                       headers: {
                                                         'Accept': 'application/json',
                                                         'Content-Type': 'application/json',
-                                                        'X-Auth-Token': this.props.userDetail.access_token,
-                                                      },
-                                                    
-                                                    }) .then((response) => response.json())
-                                                          .then((responseJson) => {
-
-                                                            console.log("json worked for braintree token",responseJson);
-                                                            console.log("checking auth_token", this.props.auth_token);
-                                                            
-                                                            if (responseJson.success){
-                                                              console.log("checking BTC token",responseJson.token );
-                                                              BTClient.setup(responseJson.token);
-                                                               
-                                                                 
-                                                            }
-
-                                                            
-                                                          })
-
-
-   
-   setTimeout(() => {
-      BTClient.showPaymentViewController()
-          .then(function(nonce) {
-            //payment succeeded, pass nonce to server
-            console.log("payment passed");
-            //console.log("here the prop", this.props.auth_token);
-            console.log("here the nonce", nonce);
-           // this.createOrder();
-            fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/save_nonce.json' , {
-                                                      method: 'POST',
-                                                      headers: {
-                                                        'Accept': 'application/json',
-                                                        'Content-Type': 'application/json',
-                                                        'X-Auth-Token': this.props.userDetail.access_token,
+                                                        'X-Auth-Token': access_token,
                                                       },
                                                       body: JSON.stringify({
-                                                        payment_method_nonce: nonce,
-
+                                                         payment_method_nonce: nonce,
+                                                        amount: cost,
+                                                        pickup_id: pickupObject.pickup.id,
                                                         
                                                         
                                                       })
                                                     }) .then((response) => response.json())
                                                           .then((responseJson) => {
 
-                                                            console.log("json worked passing nonce", responseJson);
-
+                                                            console.log("json worked for save nonce");
                                                             
                                                             if (responseJson.success){
-                                                              console.log("passing nonce success");
-                                                             
+                                                               console.log("passing nonce success", responseJson);
+                                                                passedNonce = true;
+                                                               noncePass = true;
+                                                               createTheSession(pickupObject);
+
+
+                                                              
                                                                  
                                                             }
 
-                                              
-                                                          })
+                                                            else{
+                                                              this.setState({open: true});
+
+                                                            }
+                                                          }).done();
+
+                  
+
+                }).done();
+                console.log("done BTClient");
+
+                
+                  
+            }, 2000);
+
+     
+
+        
+        function sendPaymentServer(nonce){
 
 
+      }
+    }
 
-
-          })
-          .catch(function(err) {
-            //console.error(err);
-          });
-    }, 2000);
-
-
-
-
-
-}
+        
     
+    
+   
     
     render() {
         return (
@@ -241,7 +298,7 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                     console.log(this.props.fromLatitude);
                     console.log(this.props.toLatitude);
 
-                    this.setupBraintree();
+                    this.createOrder();
 
 
                     

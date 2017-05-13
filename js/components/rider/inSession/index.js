@@ -79,7 +79,7 @@ class InSession extends Component {
        
         
           this.state = {
-
+            pickupExpired: false,
             ratingText: '',
             starCount: 1,
             pickedUP: false,
@@ -366,6 +366,12 @@ class InSession extends Component {
 
     }
 
+     var pickupExpired = () =>{
+      this.setState({pickupExpired:true});
+      
+
+    }
+
    
 
   var updateSession = (info) =>{
@@ -428,6 +434,11 @@ class InSession extends Component {
           console.log("item dropoff did occur", data.type);
           pickupFinished(data);
         }
+         if (data.data.type == "pickup_expired"){
+
+          console.log("pickup was expired", data.type);
+          pickupExpired();
+        }
 
       
           
@@ -444,6 +455,9 @@ class InSession extends Component {
             console.log("finished removing websocket");
     }
 
+    pickupExpired = () =>{
+      this.setState({pickupExpired: true});
+    }
 
     AcceptOrder = (pickup_driver_id) => {
 
@@ -712,7 +726,48 @@ console.log("checking auth token for rating", this.props.auth_token);
                                 </View>
 
                 
-            }{this.state.open && 
+            }{this.state.pickupExpired &&
+               <View style={{marginTop: 250, alignItems: 'center',marginBottom:150,backgroundColor: '#000', opacity: .8 }} >
+                
+                 
+                                   
+                                       
+                                          <Text style={{fontSize: 20, marginTop:10, marginBottom: 10, color: '#fff'}}>No Driver Found...Sorry</Text>
+
+                                          
+                                            
+                                            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} >
+
+                                                      <Button rounded block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => this.CancelOrder()} >
+
+                                                        <Text style={{fontWeight: '600',color: '#fff'}}>Go Back Home</Text>
+                                                      </Button>
+                                            </View>
+
+                                              <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} >
+
+                                                        <Text style={{fontWeight: '600',color: '#fff'}}>    </Text>
+                                                      
+                                            </View>
+
+                                              <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}} >
+
+                                                        <Text style={{fontWeight: '600',color: '#fff'}}>    </Text>
+                                                      
+                                            </View>
+
+
+                                         
+
+                                                   
+                                                                                      
+                                           
+                                          
+                                       
+                                    
+                                </View>
+            }
+            {this.state.open && 
           <Container style={{marginTop:125}}>
                 <Content style={{ opacity: .8}}>
                     <Card>

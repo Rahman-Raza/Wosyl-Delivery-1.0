@@ -253,6 +253,7 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                                                             if (responseJson.success){
                                                               console.log("checking BTC token",responseJson.token );
                                                               BTClient.setup(responseJson.token);
+                                                               BTClient.setupWithURLScheme(responseJson.token, 'com.WosylDelivery-.payments');
                                                                
                                                                  
                                                             }
@@ -263,17 +264,22 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
 
    
    setTimeout(() => {
-      BTClient.showPaymentViewController()
-          .then(function(nonce) {
-            //payment succeeded, pass nonce to server
+
+
+      BTClient.showPaymentViewController().then(function(nonce) {
+
+        
+
+   //payment succeeded, pass nonce to server
             console.log("payment passed");
             //console.log("here the prop", this.props.auth_token);
             console.log("here the nonce", nonce);
-            fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/save_nonce.json' , {
+            setState({server_nonce: nonce});
+fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/save_nonce.json' , {
                                                       method: 'POST',
                                                       headers: {
                                                         'Accept': 'application/json',
-                                                        'Content-Type': 'application/json',
+                                                        
                                                         'X-Auth-Token': this.props.auth_token,
                                                       },
                                                       body: JSON.stringify({
@@ -298,8 +304,6 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
                                                           })
 
 
-
-
           })
           .catch(function(err) {
             //console.error(err);
@@ -307,6 +311,21 @@ fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_
     }, 2000);
 
 
+
+    
+
+
+
+
+}
+set_the_nonce_state = (nonce) =>{
+  console.log("got to first nonce", nonce);
+  this.setState({nonce: nonce});
+}
+
+save_nonce = (nonce) =>{
+  console.log("got to nonce", nonce);
+  
 
 }
 
@@ -324,7 +343,9 @@ distance_extractor = (data) => {
     //Orientation.unlockAllOrientations(); //this will unlock the view to all Orientations
 
     
-     
+     if( this.state.server_nonce){
+      console.log("server_nonce", this.state.server_nonce);
+     }
 
 
 
@@ -975,14 +996,14 @@ distance_extractor = (data) => {
                         </View>
                         
                         <View style={{padding: 10}}>
-                          <Button rounded  block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => {this.sendPickup()}}
+                          <Button rounded  block style={{marginLeft: 70, marginRight:70,marginTop: 10, borderColor:'#fff'}} onPress={() => {this.sendPickup()}}
                           underlayColor='#99d9f4'>
                             <Text style={styles.buttonText}>Next</Text>
                           </Button>
                         </View>
 
                         <View style={{padding: 10}}>
-                          <Button rounded  block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => {this.goBack()}}
+                          <Button rounded  block style={{marginLeft: 70, marginBottom: 30, marginRight:70, borderColor:'#fff'}} onPress={() => {this.goBack()}}
                           underlayColor='#99d9f4'>
                             <Text style={styles.buttonText}>Back</Text>
                           </Button>

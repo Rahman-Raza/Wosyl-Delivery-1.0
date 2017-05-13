@@ -8,9 +8,10 @@
  */
 
 #import "AppDelegate.h"
-
+#import <CodePush/CodePush.h>
 #import "RCTBundleURLProvider.h"
 #import "RCTRootView.h"
+ #import "RCTPushNotificationManager.h"
 #import "../../node_modules/react-native-orientation/iOS/RCTOrientation/Orientation.h"
 
 
@@ -19,8 +20,14 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   NSURL *jsCodeLocation;
-
+  
+  
+#ifdef DEBUG
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
+#else
+  jsCodeLocation = [CodePush bundleURL];
+#endif
+
 
   RCTRootView *rootView = [[RCTRootView alloc] initWithBundleURL:jsCodeLocation
                                                       moduleName:@"WosylDelivery"
@@ -37,7 +44,28 @@
 }
 
 
+
+
 - (UIInterfaceOrientationMask)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(UIWindow *)window {
   return [Orientation getOrientation];
+}
+
+// Required to register for notifications
+     - (void)application:(UIApplication *)application didRegisterUserNotificationSettings:(UIUserNotificationSettings *)notificationSettings
+     {
+      [RCTPushNotificationManager didRegisterUserNotificationSettings:notificationSettings];
+     }
+     // Required for the register event.
+     - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+     {
+      [RCTPushNotificationManager didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+     }
+     // Required for the notification event.
+     - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)notification
+     {
+      [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+     }
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
+  return [[RCTBraintree sharedInstance] application:application openURL:url sourceApplication:sourceApplication annotation:annotation];
 }
 @end

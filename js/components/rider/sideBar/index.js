@@ -104,11 +104,11 @@ navigateTo2(route) {
                             </ListItem>
                             <ListItem button onPress={() => this.navigateTo2('history')}  iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
                                 <Icon name='ios-keypad-outline'  style={Platform.OS === 'ios' ? styles.iosSidebarIcons : styles.aSidebarIcons} />
-                                <Text style={styles.linkText}>Orders</Text>
+                                <Text style={styles.linkText}>History</Text>
                             </ListItem>
                             <ListItem button onPress={() => this.navigateTo2('notifications')}  iconLeft style={Platform.OS === 'android' ? styles.alinks : styles.links} >
                                 <Icon name='ios-notifications' style={Platform.OS === 'ios' ? styles.iosSidebarIcons : styles.aSidebarIcons} />
-                                <Text style={styles.linkText}>Restaurants</Text>
+                                <Text style={styles.linkText}>Promo Codes</Text>
                             </ListItem>
                             
                            

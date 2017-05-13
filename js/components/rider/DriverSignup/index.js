@@ -299,24 +299,11 @@ setImagePath = (data) => {
                                     </Modal>
                          </View>
 
-                         <View style={styles.regBtnContain}>
-                            <Button block style={styles.regBtn} onPress={() => this.setState({cameraOpen:true})}>
-
-                               <Text style={{color: '#fff',fontWeight: '600'}}>Take License Pic</Text>
-                            </Button>
-                        </View>
-
-                        
-
-                       
-
-
-
-
+                      
                         <View style={styles.container}>
                           
                         </View>
-                        <View style={styles.regBtnContain}>{this.state.pictureTaken&& <Button onPress={() => fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/driver_sign_up.json', {
+                        <View style={styles.regBtnContain}>{ /*this.state.pictureTaken&& */ <Button onPress={() => fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/driver_sign_up.json', {
                                                       method: 'POST',
                                                       headers: {
                                                         'Accept': 'application/json',
@@ -342,7 +329,8 @@ setImagePath = (data) => {
 
                                                             console.log("driver signup complete", responseJson);
                                                             if (responseJson.success){
-
+                                                              console.log("did send without picture");
+                                                              
                                                               this.popRoute()
 
                                                             }
@@ -370,8 +358,7 @@ setImagePath = (data) => {
 
                         
                         
-                          { this.state.pictureTaken && <Image style={styles.image} source={{ uri: this.state.photoSource }} /> }
-                        
+                     
 
                             
 

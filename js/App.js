@@ -8,6 +8,8 @@ import {Container, Header, Title, Content, Text, Button, Icon, List, ListItem, V
 import theme from './themes/base-theme';
 import ProgressBar from './components/loaders/ProgressBar';
 
+
+
 var height = Dimensions.get('window').height;
 let styles = StyleSheet.create({
     container: {
@@ -122,5 +124,7 @@ class App extends Component {
             );
     }
 }
+
+App = codePush(App);
 
 export default App
