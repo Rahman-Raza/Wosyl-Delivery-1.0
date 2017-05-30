@@ -221,7 +221,7 @@ componentWillMount(){
 
  keyboardWillShow (e) {
     
-    this.setState({visiblePadding: 200})
+    this.setState({visiblePadding: 150})
   }
 
   keyboardWillHide (e) {
@@ -986,10 +986,19 @@ distance_extractor = (data) => {
                         </View>
 
                        
-                        <View style={{padding: 10, paddingBottom: this.state.visiblePadding}}>
+                        <View style={{padding: 10,}}>
                        <InputGroup borderType='rounded' style={{marginLeft: 30, marginRight:30, color:'#000', backgroundColor:'#fff'}}>
                                 <Icon name='ios-paper' style={{color:'#16ADD4'}}/>
                                 <Input onChangeText={(text) => this.setState({notes:text})} value={this.state.notes}placeholder="Notes"  placeholderTextColor="#000" />
+                            </InputGroup>
+                            
+                            
+                        </View>
+
+                        <View style={{padding: 10, paddingBottom: this.state.visiblePadding}}>
+                       <InputGroup borderType='rounded' style={{marginLeft: 30, marginRight:30, color:'#000', backgroundColor:'#fff'}}>
+                                <Icon name='ios-paper' style={{color:'#16ADD4'}}/>
+                                <Input onChangeText={(text) => this.setState({contactNumber:text})} value={this.state.contactNumber}placeholder="Contact Number"  placeholderTextColor="#000" />
                             </InputGroup>
                             
                             

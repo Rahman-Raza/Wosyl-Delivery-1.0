@@ -83,7 +83,7 @@ createOrder = () => {
                                                               console.log("create pickup success");
                                                               console.log(responseJson);
 
-                                                              this.createSession(responseJson);
+                                                              this.setupBraintree(responseJson);
                                                               
                                                                  
                                                             }
