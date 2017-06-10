@@ -2,15 +2,13 @@ package com.wosyldelivery;
 
 import android.app.Application;
 import android.util.Log;
-
+import com.cmcewen.blurview.BlurViewPackage;
 import com.facebook.react.ReactApplication;
-import com.microsoft.codepush.react.CodePush;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -18,7 +16,7 @@ public class MainApplication extends Application implements ReactApplication {
 
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
     @Override
-    protected boolean getUseDeveloperSupport() {
+    public boolean getUseDeveloperSupport() {
       return BuildConfig.DEBUG;
     }
 
@@ -26,10 +24,14 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-            new CodePush(null, this, BuildConfig.DEBUG),
-            new VectorIconsPackage()
+            new VectorIconsPackage(),
+            new BlurViewPackage()
       );
     }
+    // @Override
+    // protected String getJSBundleFile() {
+    //   return CodePush.getJSBundleFile();
+    // }
   };
 
   @Override
