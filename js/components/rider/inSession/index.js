@@ -79,7 +79,6 @@ class InSession extends Component {
        
         
           this.state = {
-            InSession: true,
             pickupExpired: false,
             ratingText: '',
             starCount: 1,
@@ -514,29 +513,6 @@ completeOrder = () =>{
   this.setState({orderCompleted: true});
 }
 
-destroyOrder = () =>{
-
-  fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/'+this.props.pickup_id+'/cancel_pickup.json' , {
-                                                        method: 'POST',
-                                                        headers: {
-                                                          'Accept': 'application/json',
-                                                          'Content-Type': 'application/json',
-                                                          'X-Auth-Token': this.props.auth_token,
-                                                        },
-                                                        body: JSON.stringify({
-                                                          
-                                                         
-
-                                                        })
-                                                      }) .then((response) => response.json())
-                                                            .then((responseJson) => {
-                                                           console.log("customer was able to cancel the order", responseJson);
-
-                                                            
-                                                            });
-
-}
-
 submitRating = () =>{
 console.log("checking pickupID worked or not", this.state.pickupID);
 console.log("checking auth token for rating", this.props.auth_token);
@@ -640,9 +616,7 @@ console.log("checking auth token for rating", this.props.auth_token);
     console.log(location)
   }
   CancelOrder = () => {
-    this.destroyOrder();
     this.setState({spinnerVisible: false});
-    this.setState({InSession: false});
     this.props.replaceOrPushRoute('home');
   }
 
@@ -711,13 +685,13 @@ console.log("checking auth token for rating", this.props.auth_token);
                            <Title> </Title>
                        </Header>
             </View>{this.state.spinnerVisible && 
-                <View style={{marginTop: 250, alignItems: 'center',marginBottom:120,backgroundColor: '#000', opacity: .8 }} >
+                <View style={{marginTop: 250, alignItems: 'center',marginBottom:150,backgroundColor: '#000', opacity: .8 }} >
                 
                  
                     <Spinner  style={{marginRight: 20}} isVisible={true} size={100} type={'Circle'} color={"#3DA000"}/>
                                    
                                        
-                                          <Text style={{fontSize: 20, marginTop:30, marginBottom: 10, color: '#fff'}}>Looking for Driver...</Text>
+                                          <Text style={{fontSize: 20, marginTop:10, marginBottom: 10, color: '#fff'}}>Looking for Driver...</Text>
 
                                            <View>
 
@@ -752,7 +726,7 @@ console.log("checking auth token for rating", this.props.auth_token);
                                 </View>
 
                 
-            }{this.state.pickupExpired && this.state.InSession &&
+            }{this.state.pickupExpired &&
                <View style={{marginTop: 250, alignItems: 'center',marginBottom:150,backgroundColor: '#000', opacity: .8 }} >
                 
                  
@@ -903,7 +877,6 @@ function mapStateToProps(state) {
     email: state.route.users.email,
     phone_no: state.route.users.phone_no,
     auth_token: state.route.users.access_token,
-    pickup_id: state.route.pickup.pickup.id,
     pickupLatitude: state.route.pickup.pickup.from_latitude,
     pickupLongitude: state.route.pickup.pickup.from_longitude,
     dropLatitude: parseFloat(state.route.pickup.pickup.to_latitude),
