@@ -177,9 +177,13 @@ checkData = (data) =>{
 
       AppState.removeEventListener('change', this.handleAppStateChange);
     
+<<<<<<< HEAD
     App.comments &&
             App.cable.subscriptions.remove(App.comments);
             console.log("finished removing websocket");
+=======
+    this.setState({visiblePadding: 200})
+>>>>>>> origin/master
   }
 
   saveTheState (){
@@ -1926,6 +1930,7 @@ drawRoute2 =(info) => {
                         </View>
 
                        
+<<<<<<< HEAD
                         <View style={{padding: 10,}}>
                        <InputGroup borderType='rounded' style={{marginLeft: 30, marginRight:30, color:'#000', backgroundColor:'#fff'}}>
                                 <Icon name='ios-paper' style={{color:'#16ADD4'}}/>
@@ -1938,6 +1943,8 @@ drawRoute2 =(info) => {
                             
                         </View>
 
+=======
+>>>>>>> origin/master
                         <View style={{padding: 10, paddingBottom: this.state.visiblePadding}}>
                       
 
