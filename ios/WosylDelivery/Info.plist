@@ -1,27 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-
 <dict>
-	<key>CFBundleURLTypes</key>
-	<array>
-	<dict>
-		<key>CFBundleTypeRole</key>
-		<string>Editor</string>
-		<key>CFBundleURLName</key>
-		<string>com.WosylDelivery-</string>
-		<key>CFBundleURLSchemes</key>
-		<array>
-			<string>com.WosylDelivery-.payments</string>
-		</array>
-	</dict>
-	</array>
-	<key>LSApplicationQueriesSchemes</key>
-<array>
-  <string>com.paypal.ppclient.touch.v1</string>
-  <string>com.paypal.ppclient.touch.v2</string>
-  <string>com.venmo.touch.v2</string>
-</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -46,6 +26,12 @@
 	<string>1</string>
 	<key>CodePushDeploymentKey</key>
 	<string>Mf2aASiUlseNAsKVx1mElSsmqiUpNy5-AJ7hW</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>com.paypal.ppclient.touch.v1</string>
+		<string>com.paypal.ppclient.touch.v2</string>
+		<string>com.venmo.touch.v2</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>

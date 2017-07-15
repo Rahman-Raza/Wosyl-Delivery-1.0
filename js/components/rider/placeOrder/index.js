@@ -29,7 +29,10 @@ class placeOrder extends Component {
       super(props);
 
       this.state ={
+        paymentError: false,
+        userPaymentSaved: false,
         progress: 0.75,
+        errorPhone: false,
         open: false,
         phone_code: '',
       fromLocation: '',
@@ -69,6 +72,7 @@ createOrder = () => {
                                                         to_latitude: this.props.toLatitude,
                                                         to_longitude: this.props.toLongtitude,
                                                         item: this.props.itemPickup,
+                                                        customer_phone_no: this.props.customer_phone_no,
                                                         notes: this.props.notes,
 
                                                         
@@ -89,7 +93,11 @@ createOrder = () => {
                                                             }
 
                                                             else{
-                                                              this.setState({open: true});
+                                                             
+                                                              console.log("create pickup not success");
+                                                              this.handleErrors(responseJson.errors);
+                                                              console.log(responseJson);
+                                                               this.setState({open: true});
                                                                 
                                                                  
                                                              
@@ -99,10 +107,16 @@ createOrder = () => {
 }
      
 
-    
+    handleErrors = (errors) =>{
+      if (errors[0] == "Customer phone no is an invalid number"){
+        this.setState({errorPhone: true});
+        console.log("got to handleErrors");
+      }
+    }
     setupBraintree = (pickupObject) => {
 
       var access_token = this.props.userDetail.access_token;
+      this.setState({pickupObject: pickupObject});
       var cost = this.props.cost;
      
 
@@ -124,26 +138,127 @@ createOrder = () => {
                                                                   if (responseJson.success){
                                                                     console.log("checking BTC token",responseJson.token );
                                                                     BTClient.setup(responseJson.token);
+
+                                                                    if(this.props.payment_setup == false){
                                                                     this.passNonceToServer(pickupObject);
+                                                                  }
+                                                                  else{
+                                                                    this.confirmTransaction(pickupObject);
+                                                                  }
+
                                                                      
                                                                        
                                                                   }
-
-                                                                  
-                                                                })
+                                                                    }).done();
 
         console.log("check cost and pickup id",this.props.cost, pickupObject.pickup.id);
 
       
     }
 
-    creatingSession = (pickupObject) => {
-      this.createSession(pickupObject);
+    confirmTransaction = (pickupObject) =>{
+
+      if (this.props.payment_setup){
+      this.setState({paymentConfirmation: true});
     }
+      else{
+        this.setState({paymentConfirmation_setup: true});
+      }
+
+
+    }
+
+    
+
+    createTransactionAuto = (pickupObject) =>{
+
+
+
+
+      fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/create_transaction.json', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                          'Accept': 'application/json',
+                                                          'Content-Type': 'application/json',
+                                                          'X-Auth-Token': this.props.userDetail.access_token,
+                                                        },
+                                                        body: JSON.stringify({
+                                                           
+                                                          amount: this.props.cost,
+                                                          pickup_id: pickupObject.pickup.id,
+                                                          
+                                                          
+                                                        })
+                                                      }) .then((response) => response.json())
+                                                            .then((responseJson) => {
+
+                                                              console.log("json worked for create transaction auto");
+                                                              
+                                                              if (responseJson.success){
+                                                                 console.log("passing payment success", responseJson);
+                                                                 
+                                                                 this.createSession(pickupObject);
+
+
+                                                                
+                                                                   
+                                                              }
+
+                                                              else{
+                                                                console.log("passing payment auto not success", responseJson);
+                                                                this.setState({paymentError: true});
+
+                                                              }
+                                                            }).done();
+    }
+
+    savePaymentMethod = (nonce) =>{
+
+      fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/save_payment_method.json', {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Accept': 'application/json',
+                                                        'Content-Type': 'application/json',
+                                                        'X-Auth-Token':this.props.userDetail.access_token,
+                                                      },
+                                                      body: JSON.stringify({
+                                                         payment_method_nonce: nonce,
+                                                        
+                                                        
+                                                        
+                                                      })
+                                                    }) .then((response) => response.json())
+                                                          .then((responseJson) => {
+
+                                                            console.log("json worked for save nonce");
+                                                            
+                                                            if (responseJson.success){
+                                                               console.log("saving user payment info good", responseJson);
+                                                               this.setState({userPaymentSaved: true});
+                                                             
+                                                              
+
+
+                                                              
+                                                                 
+                                                            }
+
+                                                            else{
+                                                              this.setState({open: true});
+                                                              console.log("nothing was sent to save the nonce for customer");
+                                                             
+
+                                                            }
+                                                          }).done();
+
+    }
+
+
 
     passNonceToServer = (pickupObject) =>{
 
        var access_token = this.props.userDetail.access_token;
+       console.log("here access token", access_token);
       var cost = this.props.cost;
       var noncePass = false;
 
@@ -154,11 +269,21 @@ createOrder = () => {
         scope.createSession(pickupObject);
       }
 
+      function saveThePayment(nonce){
+        console.log("got to saveThePayment");
+        scope.savePaymentMethod(nonce);
+      }
+
+      function checkPaymentSetup(){
+        return scope.props.payment_setup
+      }
+
       setTimeout(() => {
             BTClient.showPaymentViewController()
                 .then(function(nonce) {
+                   saveThePayment(nonce);
 
-
+      console.log("postman info: access token: ", this.props.userDetail.access_token, "pickupID: ", pickupObject.pickup.id, "amount: ", this.props.cost );
 
                   //payment succeeded, pass nonce to server
                   console.log("payment passed");
@@ -170,42 +295,46 @@ createOrder = () => {
                   var paymentObject = {"pickup_id" : pickupObject.pickup.id, "amount" : cost, "payment_method_nonce" : nonce};
                   var JSONObject = JSON.stringify(paymentObject);
                   console.log("checking JSON pay object", JSONObject);
+                
                  
-                  fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/save_nonce.json', {
-                                                      method: 'POST',
-                                                      headers: {
-                                                        'Accept': 'application/json',
-                                                        'Content-Type': 'application/json',
-                                                        'X-Auth-Token': access_token,
-                                                      },
-                                                      body: JSON.stringify({
-                                                         payment_method_nonce: nonce,
-                                                        amount: cost,
-                                                        pickup_id: pickupObject.pickup.id,
-                                                        
-                                                        
-                                                      })
-                                                    }) .then((response) => response.json())
-                                                          .then((responseJson) => {
+                                   
+                    fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/user/create_transaction.json', {
+                                                        method: 'POST',
+                                                        headers: {
+                                                          'Accept': 'application/json',
+                                                          'Content-Type': 'application/json',
+                                                          'X-Auth-Token': access_token,
+                                                        },
+                                                        body: JSON.stringify({
+                                                           
+                                                          amount: cost,
+                                                          pickup_id: pickupObject.pickup.id,
+                                                          
+                                                          
+                                                        })
+                                                      }) .then((response) => response.json())
+                                                            .then((responseJson) => {
 
-                                                            console.log("json worked for save nonce");
-                                                            
-                                                            if (responseJson.success){
-                                                               console.log("passing nonce success", responseJson);
-                                                                passedNonce = true;
-                                                               noncePass = true;
-                                                               createTheSession(pickupObject);
-
-
+                                                              console.log("json worked for save nonce");
                                                               
-                                                                 
-                                                            }
+                                                              if (responseJson.success){
+                                                                 console.log("passing payment success", responseJson);
+                                                                  passedNonce = true;
+                                                                 noncePass = true;
+                                                                 createTheSession(pickupObject);
 
-                                                            else{
-                                                              this.setState({open: true});
 
-                                                            }
-                                                          }).done();
+                                                                
+                                                                   
+                                                              }
+
+                                                              else{
+                                                                console.log("passing payment not success", responseJson);
+                                                                this.setState({paymentError: true});
+
+                                                              }
+                                                            }).done();
+                
 
                   
 
@@ -219,10 +348,7 @@ createOrder = () => {
      
 
         
-        function sendPaymentServer(nonce){
-
-
-      }
+        
     }
 
         
@@ -309,6 +435,7 @@ createOrder = () => {
             }}  underlayColor='#99d9f4'>
                     <Text style={styles.buttonText}>Place Order</Text>
                   </Button>
+                  
 
                   
 
@@ -330,6 +457,109 @@ createOrder = () => {
                                           <TouchableOpacity
                                              style={{margin: 5}}
                                              onPress={() => this.setState({open: false})}>
+                                             <Text></Text>
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+
+                                    <Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.errorPhone}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({errorPhone: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>Please enter a valid phone number starting with a 1.</Text>
+                                          
+                                          <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({errorPhone: false})}>
+                                             <Text></Text>
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+
+                                    <Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.paymentError}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({paymentError: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>There was an issue with your payment, please try again.</Text>
+
+
+                                          
+                                          <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({paymentError: false})}>
+                                             <Text></Text>
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+
+                                    <Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.paymentConfirmation}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({paymentConfirmation: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>Would you like to continue with your previously used payment method or use a different one?</Text>
+
+                                          <Button rounded bordered block style={{marginLeft: 30, marginRight:30,  backgroundColor: '#48BBEC',borderColor: '#48BBEC',}} onPress={() => {
+                                                              this.createTransactionAuto(this.state.pickupObject);
+                                                              this.setState({paymentConfirmation:false});
+                                                            }}  underlayColor='#99d9f4'>
+                                              <Text style={styles.buttonText}>Continue</Text>
+                                            </Button>
+                                            <Button rounded bordered block style={{marginLeft: 30, marginRight:30, marginTop:20, backgroundColor: '#48BBEC',
+                                              borderColor: '#48BBEC',}} onPress={() => {
+                                                              
+
+                                                              this.passNonceToServer(this.state.pickupObject);
+                                                              this.setState({paymentConfirmation:false});
+                                                            }}  underlayColor='#99d9f4'>
+                                              <Text style={styles.buttonText}>New Payment</Text>
+                                            </Button>
+                                          
+                                          <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({paymentConfirmation: false})}>
+                                             <Text></Text>
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+
+                                     <Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.paymentConfirmation_setup}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({paymentConfirmation_setup: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                         
+                                            <Button rounded bordered block style={{marginLeft: 30, marginRight:30, marginTop:20, backgroundColor: '#48BBEC',
+                                              borderColor: '#48BBEC',}} onPress={() => {
+                                                              
+
+                                                              this.passNonceToServer(this.state.pickupObject);
+                                                              this.setState({paymentConfirmation_setup:false});
+                                                            }}  underlayColor='#99d9f4'>
+                                              <Text style={styles.buttonText}>New Payment Setup</Text>
+                                            </Button>
+                                          
+                                          <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({paymentConfirmation_setup: false})}>
                                              <Text></Text>
                                           </TouchableOpacity>
                                        </View>
@@ -407,7 +637,9 @@ function mapStateToProps(state) {
           fromLongtitude: state.route.pickup.fromLongtitude,
           itemPickup: state.route.pickup.itemPickup,
           notes: notes,
+          customer_phone_no: state.route.pickup.customer_phone_no,
           userDetail: state.route.users,
+          payment_setup: state.route.users.payment_setup,
           
 
       }

@@ -115,6 +115,11 @@ class driverHome extends Component {
         this.Recieving(data);
 
       }
+
+      var pickupExpired = () =>{
+        this.setState({pickopen: false});
+        this.setState({pickExpired: true});
+      }
     console.log("checking cable auth");
     console.log(this.props.auth_token);
     App.cable = ActionCable.createConsumer('ws://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/cable?auth_token=' + this.props.auth_token);
@@ -133,8 +138,21 @@ class driverHome extends Component {
 
         received: function(data) {
           console.log("heres the data for the driver socket", data);
+
+           if (data.data.type == "pickup_expired" || data.data.type == "pickup_cancelled"){
+           
+           PushNotification.localNotificationSchedule({
+           message: "The Delivery was expired or cancelled", // (required)
+            date: (new Date(Date.now()  )).toISOString() // 
+            });
+
+      
+
+          console.log("pickup was expired", data.data.type);
+          pickupExpired();
+        }
           
-          if (!(data.data.type == "pickup_session_finished")){
+          else {
           RecievingHere(data);
         }
 
@@ -878,14 +896,25 @@ driverModeSwitch = () => {
                           value={true} />
                           <Text style={{color:'#fff'}}>Driver Mode</Text>
                         
-                      </View>
+                      </View>{this.state.pickExpired && 
 
-                      
+                     <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom:120,  backgroundColor: '#000', opacity: .8}}>
+                                   
+                                       
+                                          <Text style={{fontSize: 20, marginBottom: 10, color: '#fff'}}>The pickup request is no longer available.</Text>
+                                          <Grid><Col></Col>
+                                                <Col style={{padding: 10}}>
+                                                  <Button rounded onPress={() => this.setState({pickExpired: false})} >
+
+                                                    <Text style={{fontWeight: '600',color: '#fff'}}>Continue</Text>
+                                                  </Button>
+                                                </Col> 
+                                                <Col></Col>
+                                            </Grid>
 
 
-                     
-                    
-                     {this.state.pickopen && 
+                       </View>
+                                        }{this.state.pickopen && 
 
                      <View style={{flex: 1, justifyContent: 'center', alignItems: 'center', marginBottom:120,  backgroundColor: '#000', opacity: .8}}>
                                    

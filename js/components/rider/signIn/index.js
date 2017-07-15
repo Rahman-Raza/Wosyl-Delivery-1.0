@@ -53,6 +53,7 @@ class SignIn extends Component {
       super(props);
 
       this.state ={
+        AlreadySignedIn: false,
         token: null,
         user: null,
         badLogin: null,
@@ -97,6 +98,86 @@ class SignIn extends Component {
 
      DeviceEventEmitter.addListener('keyboardWillShow', this.keyboardWillShow.bind(this));
     DeviceEventEmitter.addListener('keyboardWillHide', this.keyboardWillHide.bind(this));
+}
+
+loginUser = () =>{
+
+  fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/login.json', {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Accept': 'application/json',
+                                                        'Content-Type': 'application/json',
+                                                        'X-Auth-Token': '587a895e216fefe49218f651b1bd16f5',
+                                                      },
+                                                      body: JSON.stringify({
+                                                        
+                                                        email: this.state.email,
+                                                        password: this.state.password,
+                                                      })
+                                                    }) .then((response) => response.json())
+                                                          .then((responseJson) => {
+                                                            if (responseJson.success){
+
+                                                              this.state.name = responseJson.user.first_name;
+
+                                                               this.setState({userDetail: responseJson.user});
+                                                              
+
+                                                                if(responseJson.user.is_phone_verified ){
+                                                                    console.log("checking signIn status:", responseJson);
+                                                                    this.setState({is_driver_verified:responseJson.user.is_driver_verified});
+
+                                                                    if(responseJson.user.is_online = true){  //user is already marked as online, cannot proceed.
+                                                                    
+                                                                 //     this.setState({AlreadySignedIn: true});
+                                                                 // this.setState({email:''});
+                                                                 // this.setState({password:''});
+
+                                                                 this.props.setUser(responseJson.user);
+                                                                    AsyncStorage.multiSet([['token',this.state.password],['userID',responseJson.user.email]]);
+                                                                     console.log("got to the here3");
+                                                                 this.replaceRoute('home',this.state.userDetail);
+                                                                      }
+
+                                                                    else{  //No device is logged in with this account, can proceed
+
+
+                                                                    this.props.setUser(responseJson.user);
+                                                                    AsyncStorage.multiSet([['token',this.state.password],['userID',responseJson.user.email]]);
+                                                                     console.log("got to the here3");
+                                                                 this.replaceRoute('home',this.state.userDetail);
+                                                                  }
+                                                                }
+
+                                                                 else{
+                                                                    this.state ={
+                                                                      is_activated: responseJson.user.is_activated,
+                                                                      
+                                                                      
+                                                                    };
+
+                                                                    console.log("got to the here");
+
+                                                                    if(this.state.is_activated){
+
+                                                                      AsyncStorage.multiSet([['token',this.state.password],['userID',responseJson.user.email]]);
+                                                                      console.log("got to the here2");
+                                                                    this.replaceRoute('PhoneVerify',responseJson.user);
+
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            else{
+                                                                this.setState({open: true});
+                                                                this.setState({email:''});
+                                                                this.setState({password:''})
+
+
+
+                                                            }
+                                                          })
+
 }
 
  
@@ -145,76 +226,8 @@ class SignIn extends Component {
 
 
                                 
-                                <Button rounded onPress={() =>                   
-                                  fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/login.json', {
-                                                      method: 'POST',
-                                                      headers: {
-                                                        'Accept': 'application/json',
-                                                        'Content-Type': 'application/json',
-                                                        'X-Auth-Token': '587a895e216fefe49218f651b1bd16f5',
-                                                      },
-                                                      body: JSON.stringify({
-                                                        
-                                                        email: this.state.email,
-                                                        password: this.state.password,
-                                                      })
-                                                    }) .then((response) => response.json())
-                                                          .then((responseJson) => {
-                                                            if (responseJson.success){
-
-                                                              this.state.name = responseJson.user.first_name;
-
-                                                               this.setState({userDetail: responseJson.user});
-                                                              
-
-                                                                if(responseJson.user.is_phone_verified ){
-                                                                    this.setState({is_driver_verified:responseJson.user.is_driver_verified});
-
-                                                                    if(responseJson.user.is_driver_verified){
-                                                                      AsyncStorage.multiSet([['token',this.state.password],['userID',responseJson.user.email]]);
-                                                                      console.log("state.userDetail", this.state.userDetail);
-                                                                      this.replaceRoute('home',this.state.userDetail);
-
-                                                                    }
-
-                                                                    else{
-
-
-                                                                    this.props.setUser(responseJson.user);
-                                                                    AsyncStorage.multiSet([['token',this.state.password],['userID',responseJson.user.email]]);
-                                                                 this.replaceRoute('home',this.state.userDetail);
-                                                                  }
-                                                                }
-
-                                                                 else{
-                                                                    this.state ={
-                                                                      is_activated: responseJson.user.is_activated,
-                                                                      
-                                                                      
-                                                                    };
-
-                                                                    if(this.state.is_activated){
-
-                                                                      AsyncStorage.multiSet([['token',this.state.password],['userID',responseJson.user.email]]);
-                                                                    this.replaceRoute('PhoneVerify',responseJson.user);
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            else{
-                                                                this.setState({open: true});
-                                                                this.setState({email:''});
-                                                                this.setState({password:''})
-
-
-
-                                                            }
-                                                          })
-                                                          .catch((error) => {
-                                                            console.error(error);
-                                                          })
-
-                              }    block style={{marginLeft:20,marginRight:20,marginBottom: this.state.visiblePadding}} >
+                                <Button rounded onPress={() => this.loginUser()}   
+                                 block style={{marginLeft:20,marginRight:20,marginBottom: this.state.visiblePadding}} >
                                   
                                     <Text style={{fontWeight: '600',color: '#fff'}}>SIGN IN</Text>
                                 </Button>
@@ -236,6 +249,25 @@ class SignIn extends Component {
                                           <TouchableOpacity
                                              style={{margin: 5}}
                                              onPress={() => this.setState({open: false})}>
+                                             <Text></Text>
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+
+                                    <Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.AlreadySignedIn}
+                                       modalDidOpen={() => console.log('Already Signed In modal did open')}
+                                       modalDidClose={() => this.setState({AlreadySignedIn: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>This account is already signed in to another device.</Text>
+                                          
+                                          <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({AlreadySignedIn: false})}>
                                              <Text></Text>
                                           </TouchableOpacity>
                                        </View>

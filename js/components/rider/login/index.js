@@ -2,7 +2,7 @@
 
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { View, Platform, Dimensions,StatusBar,Image, AsyncStorage } from 'react-native';
+import { View, Platform, Dimensions,StatusBar,Image, AsyncStorage, TouchableOpacity, } from 'react-native';
 
 import {  pushNewRoute } from '../../../actions/route';
 import { replaceRoute,popRoute} from '../../../actions/route';
@@ -10,7 +10,7 @@ import {setUser} from '../../../actions/user';
 
 import { Content, Text, Button, Icon } from 'native-base';
 import { Grid, Col, Row } from 'react-native-easy-grid';
-
+import Modal from 'react-native-simple-modal';
 import styles from './styles';
 import theme from '../../../themes/base-theme';
 
@@ -34,6 +34,21 @@ class BackgroundImage extends Component {
 
 class Login extends Component {
 
+    constructor(props) {
+      super(props);
+
+      this.state ={
+        AlreadySignedIn: false,
+        token: null,
+        user: null,
+        badLogin: null,
+        visiblePadding: 0,
+        open: false,
+        name: '',
+        password: '',
+        is_driver_verified: false,
+    };
+    }
      setUser(users) {
     this.props.setUser(users);
   }
@@ -107,10 +122,20 @@ class Login extends Component {
                                                                     this.setState({is_driver_verified:responseJson.user.is_driver_verified});
 
                                                                     if(responseJson.user.is_driver_verified){
+
+                                                                    //     if(responseJson.user.is_online){  //user is already marked as online, cannot proceed.
+
+                                                                    //   this.setState({AlreadySignedIn: true});
+                                                              
+                                                                    // }
+
+                                                                    // else{  //No device is logged in with this account, can proceed
+
                                                                      
                                                                       this.replaceRoute('home',responseJson.user);
 
-                                                                    }
+                                                                    //}
+                                                                  }
 
                                                                     else{
 
@@ -183,7 +208,24 @@ class Login extends Component {
                         </View>
                          </BackgroundImage>
                     </Content>
-                    
+                     <Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.AlreadySignedIn}
+                                       modalDidOpen={() => console.log('Already Signed In modal did open')}
+                                       modalDidClose={() => this.setState({AlreadySignedIn: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>This account is already signed in to another device.</Text>
+                                          
+                                          <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({AlreadySignedIn: false})}>
+                                             <Text></Text>
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
                 </View>
             )
 

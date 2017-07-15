@@ -60,7 +60,25 @@ navigateTo2(route) {
 
     logUserOut = () =>{
         AsyncStorage.multiRemove(['token','userId']);
-    }
+
+          fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/logout.json', {
+                                                      method: 'POST',
+                                                      headers: {
+                                                        'Accept': 'application/json',
+                                                        'Content-Type': 'application/json',
+                                                        'X-Auth-Token': this.props.access_token,
+                                                      },
+                                                      body: JSON.stringify({
+                                                       
+                                                      })
+                                                    }) .then((response) => response.json())
+                                                          .then((responseJson) => {
+
+                                                            console.log("checking response for user signOut: ", responseJson);
+
+                                                          }
+                                                                );
+                    }
     resetRoute(route) {
         this.props.closeDrawer();
         this.logUserOut();
@@ -178,6 +196,7 @@ function mapStateToProps(state) {
     is_driver_verified: state.route.users.is_driver_verified,
     drivers_license_image_thumb_url: state.route.users.drivers_license_image_large_url,
     userImage: imageExists,
+    access_token: state.route.users.access_token,
 
     
   }

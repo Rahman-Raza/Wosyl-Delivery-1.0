@@ -1,4 +1,4 @@
- 'use strict';
+  'use strict';
 
 import React, { Component } from 'react';
 
@@ -12,9 +12,11 @@ import ActionCable from 'react-native-actioncable';
  var {CountDownText} = require('react-native-sk-countdown');
  import StarRating from 'react-native-star-rating';
 
-import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, TouchableOpacity, TextInput} from 'react-native';
+import { Linking,Image, View,AppState, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, TouchableOpacity, TextInput} from 'react-native';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
 import {  TouchableHighlight} from 'react-native';
+import PushController from '../../PushNotifications/PushController.js'
+ import PushNotification from 'react-native-push-notification';
 
 
 
@@ -79,6 +81,7 @@ class InSession extends Component {
        
         
           this.state = {
+            appClosed: false,
             InSession: true,
             pickupExpired: false,
             ratingText: '',
@@ -292,6 +295,8 @@ class InSession extends Component {
       this.setState({fooditems: "allthefood"});
 
       this.setState({driver_name: info.data.pickup.driver.first_name});
+       this.setState({driver_phone_number: info.data.pickup.driver.phone_no});
+
       this.setState({driver_image: info.data.pickup.driver.drivers_license_image_thumb_url});
       this.setState({fromCoordinates: [parseFloat(info.data.pickup.driver.latitude),parseFloat(info.data.pickup.driver.longitude)]});
       this.setState({fromLatitude: parseFloat(info.data.pickup.driver.latitude)});
@@ -417,6 +422,12 @@ class InSession extends Component {
           console.log("checking newData2", data.data.type);
         
         if(data.data.type == "pickup_session_started"){
+           
+           PushNotification.localNotificationSchedule({
+           message: "Your driver is on his way!", // (required)
+            date: (new Date(Date.now()  )).toISOString() // 
+            });
+      
           
           console.log("pickup start did occur", data.type);
           
@@ -425,6 +436,12 @@ class InSession extends Component {
 
 
        if (data.data.type == "item_pickedup"){
+
+          PushNotification.localNotificationSchedule({
+           message: "Your driver has picked up your delivery package.", // (required)
+            date: (new Date(Date.now()  )).toISOString() // 
+            });
+      
           console.log("item pickup did occur2", data.type);
 
             itemPickedup(data);
@@ -432,12 +449,25 @@ class InSession extends Component {
 
        if (data.data.type == "pickup_session_finished"){
 
+         
+           PushNotification.localNotificationSchedule({
+           message: "Your Delivery has arrived.", // (required)
+            date: (new Date(Date.now()  )).toISOString() // 
+            });
+      
+
           console.log("item dropoff did occur", data.type);
           pickupFinished(data);
         }
          if (data.data.type == "pickup_expired"){
+           
+           PushNotification.localNotificationSchedule({
+           message: "No Driver Was found", // (required)
+            date: (new Date(Date.now()  )).toISOString() // 
+            });
+      
 
-          console.log("pickup was expired", data.type);
+          console.log("pickup was expired", data.data.type);
           pickupExpired();
         }
 
@@ -451,9 +481,13 @@ class InSession extends Component {
    }
 
    componentWillUnmount () {
-        App.comments &&
+     
+    AppState.removeEventListener('change', this.handleAppStateChange);
+    
+    App.comments &&
             App.cable.subscriptions.remove(App.comments);
             console.log("finished removing websocket");
+        
     }
 
     pickupExpired = () =>{
@@ -486,6 +520,65 @@ class InSession extends Component {
 
     
   }
+
+
+handleAppStateChange = (appState) => {
+   if (appState === 'background') {
+      this.setState({appClosed: true})
+      console.log("went to background");
+      let date = new Date(Date.now() );
+
+      if (Platform.OS === 'ios') {
+        console.log("platform is IOS");
+        date = date.toISOString();
+        console.log("checking date", date);
+
+
+
+        PushNotification.configure({
+
+    // (optional) Called when Token is generated (iOS and Android)
+    onRegister: function(token) {
+        console.log( 'TOKEN:', token );
+    },
+
+    // (required) Called when a remote or local notification is opened or received
+    onNotification: function(notification) {
+        console.log( 'NOTIFICATION:', notification );
+    },
+
+    // ANDROID ONLY: GCM Sender ID (optional - not required for local notifications, but is need to receive remote push notifications)
+    senderID: "YOUR GCM SENDER ID",
+
+    // IOS ONLY (optional): default: all - Permissions to register.
+    permissions: {
+        alert: true,
+        badge: true,
+        sound: true
+    },
+
+    // Should the initial notification be popped automatically
+    // default: true
+    popInitialNotification: true,
+
+    /**
+      * (optional) default: true
+      * - Specified if permissions (ios) and token (android and ios) will requested or not,
+      * - if not, you must call PushNotificationsHandler.requestPermissions() later
+      */
+    requestPermissions: true,
+});
+      }
+
+
+   
+    }
+
+  else{
+    this.setState({appClosed: false});
+  }
+}
+
   setopenfalse = () =>{
     this.setState({open: false});
   }
@@ -578,10 +671,49 @@ console.log("checking auth token for rating", this.props.auth_token);
                                                           })
 }
 
+callDriver = () =>{ 
+
+
+var url = 'tel: '+this.state.driver_phone_number;
+      console.log("checking apple route for phone call",url);
+
+    Linking.openURL(url).catch(err => console.error('An error occurred', err));
+
+
+
+
+}
+
+textDriver = () =>{ 
+
+
+var url = 'sms: '+this.state.driver_phone_number;
+      console.log("checking apple route for phone call",url);
+
+    Linking.openURL(url).catch(err => console.error('An error occurred', err));
+
+
+
+
+}
+
 
     componentDidMount() {
       
 
+      AppState.addEventListener('change',this.handleAppStateChange)
+    
+        let that = this;
+        setTimeout(function () {
+            that.setState({
+                visible: true,
+            });
+        }, 500);
+        setTimeout(function () {
+            that.setState({
+                opacity: 0
+            });
+        }, 900);
        
        
 
@@ -600,7 +732,7 @@ console.log("checking auth token for rating", this.props.auth_token);
 
 
     
-        let that = this;
+      
         setTimeout(function () {
             that.setState({
                 visible: true,
@@ -612,6 +744,8 @@ console.log("checking auth token for rating", this.props.auth_token);
             });
         }, 900);
     }
+
+
 
     getInitialState() {
     return {
@@ -737,7 +871,7 @@ console.log("checking auth token for rating", this.props.auth_token);
 
                                                       <Button rounded block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => this.CancelOrder()} >
 
-                                                        <Text style={{fontWeight: '600',color: '#fff'}}>Cacel Order</Text>
+                                                        <Text style={{fontWeight: '600',color: '#fff'}}>Cancel Order</Text>
                                                       </Button>
                                             </View>
 
@@ -800,6 +934,8 @@ console.log("checking auth token for rating", this.props.auth_token);
                         <CardItem style={{alignItems: 'center'}}>
                             
                             <Text>Your Driver: {this.state.driver_name}</Text>
+                             <Text onPress={() => this.callDriver()}>Phone Number: {this.state.driver_phone_number}</Text>
+
                             
                         </CardItem>
 
@@ -810,6 +946,27 @@ console.log("checking auth token for rating", this.props.auth_token);
                                             margin: 10,
                                              borderRadius: 75,marginLeft:100}} source={{uri: this.state.driver_image}} />
                         </CardItem>
+                         <CardItem style={{alignItems: 'center'}}>
+                            <Button rounded block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => this.callDriver()} >
+
+                                                        <Text style={{fontWeight: '600',color: '#fff'}}>Call Driver</Text>
+                                                      </Button>
+                            
+                            
+                            
+                        </CardItem>
+
+                         <CardItem style={{alignItems: 'center'}}>
+                            <Button rounded block style={{marginLeft: 30, marginRight:30, borderColor:'#fff'}} onPress={() => this.textDriver()} >
+
+                                                        <Text style={{fontWeight: '600',color: '#fff'}}>Text Driver</Text>
+                                                      </Button>
+                            
+                            
+                            
+                        </CardItem>
+
+
 
                         <CardItem>
                             <Grid>  
