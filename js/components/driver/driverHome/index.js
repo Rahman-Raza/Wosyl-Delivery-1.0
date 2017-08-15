@@ -13,9 +13,9 @@ import ActionCable from 'react-native-actioncable';
  import PushNotification from 'react-native-push-notification';
 
 
-import AwesomeButton from 'react-native-awesome-button';
 
-import { Image, AppState, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, TouchableOpacity,Linking, Modal, } from 'react-native';
+
+import { Image, AppState, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, TouchableOpacity,Linking, Modal, AsyncStorage} from 'react-native';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
 import {  TouchableHighlight} from 'react-native';
 
@@ -179,7 +179,59 @@ class driverHome extends Component {
   }
 
   
+saveTheState (){
 
+var stateJSON = JSON.stringify(this.state);
+     AsyncStorage.setItem('State',stateJSON).done();
+
+  }
+
+  wipeTheState = () => {
+
+     AsyncStorage.removeItem('State').then((data) => {
+           
+                console.log("cleared the syncstorage state");
+              }).done();
+                
+  }
+
+  
+checkData = (data) =>{
+  
+  var Data = JSON.parse(data);
+
+    console.log("checking JSON parse ", Data);
+
+    for (var key in Data){
+   this.setState( {[key] : Data[key]});
+  // this.resetDeliveryData();
+ 
+    }
+
+    if (this.state.websocket){
+      this.setupSubscription();
+    }
+
+    if(!(Data["toLocation"] === "To Location") && !(Data["fromLocation"] === "From Location")){
+      console.log("got to drawing route");
+
+      //console.log("checking if map exists or not", this._map);
+      console.log("checkign new coords", this.state.fromLatitude, this.state.fromLongtitude, this.state.toLatitude, this.state.toLongtitude);
+
+
+    }
+
+   this.setState({key: Data[key]});
+
+   console.log("checking this.state.toLocation", this.state.toLocation)
+  
+}
+
+ componentDidUpdate(){
+
+    this.saveTheState();
+
+  }
 
 
     constructor(props) {
@@ -263,6 +315,25 @@ class driverHome extends Component {
 
   componentWillMount(){
 
+    AsyncStorage.getItem('State').then((data) => {
+           
+                console.log("checking empty state or not", data);
+                if (data){
+                 
+
+                 this.checkData(data);
+
+
+                  console.log("checking new state", this.state);
+                }
+
+
+
+
+
+
+              }).done();
+
      navigator.geolocation.getCurrentPosition(
       (position) => this.setState({position}),
       (error) => alert(error.message),
@@ -317,6 +388,7 @@ class driverHome extends Component {
             console.log("finished removing websocket");
 
         AppState.removeEventListener('change', this.handleAppStateChange);
+         this.wipeTheState();
     }
 
 handleAppStateChange = (appState) => {

@@ -81,11 +81,10 @@ class InSession extends Component {
        
         
           this.state = {
-<<<<<<< HEAD
+
             appClosed: false,
             InSession: true,
-=======
->>>>>>> origin/master
+
             pickupExpired: false,
             ratingText: '',
             starCount: 1,

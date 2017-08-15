@@ -42,6 +42,12 @@ module.exports = StyleSheet.create({
   },
     container: {
     flex: 1,
+    zIndex: 25,
+    position: 'relative',
+    backgroundColor: '#696969'
+  },
+   deliveryContainer: {
+    zIndex: 25,
     position: 'relative',
     backgroundColor: '#696969'
   },

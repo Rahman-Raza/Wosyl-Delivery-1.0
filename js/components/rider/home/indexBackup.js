@@ -6,7 +6,6 @@ import { connect } from 'react-redux';
 import polyline from 'polyline';
 import Modal from 'react-native-simple-modal';
 import { createSession } from '../../../actions/route';
-import Roww from './Roww'
 
 var Spinner = require('react-native-spinkit');
 
@@ -15,7 +14,7 @@ import {BlurView} from 'react-native-blur';
 import LoadingOverlay from '../LoadingOverlay';
 import AwesomeButton from 'react-native-awesome-button';
 
-import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter, TouchableOpacity, AsyncStorage,Linking,AppState,TextInput, ListView} from 'react-native';
+import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter, TouchableOpacity, AsyncStorage,Linking,AppState,TextInput} from 'react-native';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
 var Orientation = require('react-native-orientation');
 
@@ -118,8 +117,7 @@ checkData = (data) =>{
 
     for (var key in Data){
    this.setState( {[key] : Data[key]});
-  this.resetDeliveryData();
- 
+
     }
 
     if (this.state.websocket){
@@ -640,72 +638,18 @@ var url = 'sms: '+this.state.driver_phone_number;
   }
 
 
-openDeliveries = () =>{
 
-if (!this.state.DeliveryModal){
-  
-  
-  
-  this.setState({visible: false});
-  this.setState({DeliveryModal: true});
-  //console.log("checking Del Data1", this.state.dataSource);
-  //this.DeliveryData.concat('fourth');
- // console.log("checking Del Data", DeliveryData);
- // var new_data = this.props.deliveries;
- // this.setState({dataSource: this.state.ds.cloneWithRows(new_data)})
-}
-
-else{
-
-    
-  this.setState({visible: true});
-  this.setState({DeliveryModal: false});
-
-}
-  
-}
 
   
-resetDeliveryData = () =>{
-  const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 
-
-  if (this.props.deliveries.length > 0){
-    var dataSource = ds.cloneWithRows(this.props.deliveries);
-  this.setState({dataSource: dataSource});
-  this.setState({ds: ds});
-  }
-
-  else{
-  var dataSource = ds.cloneWithRows([{item_pickedup: true, pickup_to: 'destination', pickup_from: 'origin', item: 'Food', notes: 'Notes'}]);
-  this.setState({dataSource: dataSource});
-  this.setState({ds: ds});
-  }
-}
 
 
     constructor(props) {
         super(props);
-  const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+
        
-       // const DeliveryData = {pickup: "nowhere", destination: "somewhere", user: "john"};
-       
-       var DeliveryData = [];
-       if(this.props.deliveries){
-        const DeliveryData = this.props.deliveries;
-      }
-      else{
-        const DeliveryData = [{item_pickedup: true, pickup_to: 'destination', pickup_from: 'origin', item: 'Food', notes: 'Notes'}];
-      }
-
-
-      
-
-
+        
           this.state = {
-            ds: ds, 
-            DeliveryModal: false,
-             dataSource: ds.cloneWithRows(DeliveryData),
             firstOption: true,
             secondOptions: false,
             websocket: false,
@@ -810,14 +754,10 @@ this.setState({secondOptions: true});
 
    confirmTransaction = (pickupObject) =>{
 
-    console.log("got to CTR");
-
       if (this.props.payment_setup){
-        console.log("payment is setup for user");
       this.setState({paymentConfirmation: true});
     }
       else{
-        console.log("payment not setup for user");
         this.setState({paymentConfirmation_setup: true});
       }
 
@@ -1010,7 +950,7 @@ this.setState({secondOptions: true});
       var cost = this.state.cost;
      
 
-      console.log("checking first  auth_token", this.props);
+      console.log("checking first  auth_token", this.props.auth_token);
       fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_token.json', {
                                                             method: 'POST',
                                                             headers: {
@@ -1034,7 +974,6 @@ this.setState({secondOptions: true});
                                                                     this.passNonceToServer(pickupObject);
                                                                   }
                                                                   else{
-                                                                    console.log("got to confirmTransaction", this.props.payment_setup);
                                                                     this.confirmTransaction(pickupObject);
                                                                   }
 
@@ -1592,7 +1531,8 @@ drawRoute2 =(info) => {
                   <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
                   <Content theme={theme}>
                   </Content>
-                                        <View style={styles.map}>
+
+                  <View style={styles.map}>
                         {(this.state.visible) ?
                         (<MapView ref={map => { this._map = map; }}
                             style={styles.map}
@@ -1620,33 +1560,18 @@ drawRoute2 =(info) => {
                             onOpenAnnotation={this.onOpenAnnotation}
                             onUpdateUserLocation={this.onUpdateUserLocation}/>)
                         : <View />
-                        }{this.state.DeliveryModal &&
-
-                 
-                                      
-                                       
-                                          
-
-                                          <ListView
-                                                style={styles.deliveryContainer}
-                                                 dataSource={this.state.dataSource}
-                                                 renderRow={(rowData) =>  <Roww {...rowData} />}/>
-                                                 
-                                               
-                                          
-                                          
-                                             
-              
-                                      }
-                    </View><View style={styles.headerContainer}>
+                        }
+                    </View>
+                    
+                  <View style={styles.headerContainer}>
                        <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
                            <Button transparent  onPress={ this.props.openDrawer
 
                            } >
                                <Icon name='ios-menu' />
-                           </Button>{!this.props.is_driver_verified && this.state.visible && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
+                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
                     
-                     </View>{this.props.is_driver_verified && this.state.visible && 
+                     </View>{this.props.is_driver_verified &&
                             <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
                         <Switch
                           onValueChange={(value) => this.driverModeSwitch()}
@@ -1654,11 +1579,11 @@ drawRoute2 =(info) => {
                           value={false} />
                           <Text style={{color:'#fff'}}>Driver Mode</Text>
                         
-                      </View>}{
+                      </View>}{!this.props.is_driver_verified &&
                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
-                        <Button transparent onPress={ () => this.openDeliveries() } >
+                        <Button transparent  onPress={ this.props.openDrawer} >
                                
-                               <Text style={{color:'#000'}}>Orders</Text>
+                               <Text style={{color:'#fff'}}>Current Order</Text>
                         </Button>
                           
                         
@@ -1680,7 +1605,7 @@ drawRoute2 =(info) => {
                                              
                                           </TouchableOpacity>
                                        </View>
-                                    </Modal>{this.state.firstOption && this.state.visible && 
+                                    </Modal>{this.state.firstOption && 
 
                                       <View style={{padding: 10}}>
                         
@@ -1830,7 +1755,7 @@ drawRoute2 =(info) => {
 
                               
                             
-                        </View>}{ this.state.firstOption && this.state.visible && 
+                        </View>}{ this.state.firstOption &&
                         <View style={{padding: 10, paddingBottom: this.state.visiblePadding}}>
                        
                             <GooglePlacesAutocomplete
@@ -1978,7 +1903,7 @@ drawRoute2 =(info) => {
                                 
                             </GooglePlacesAutocomplete>
                             
-                        </View>}{this.state.firstOption && this.state.visible && 
+                        </View>}{this.state.firstOption &&
                           <View style={{padding: 10}}>
 
 
@@ -2003,7 +1928,7 @@ drawRoute2 =(info) => {
                         </Button>
 
                         
-                        </View>}{this.state.secondOptions && this.state.visible && 
+                        </View>}{this.state.secondOptions &&
 
                           <View style={{marginTop: 20}}>
                
@@ -2066,7 +1991,7 @@ drawRoute2 =(info) => {
 
 
 
-                        }{this.state.confirmPickup && this.state.visible && 
+                        }{this.state.confirmPickup &&
 
                            <View style={{paddingBottom: 150}}>
                    
@@ -2140,7 +2065,7 @@ drawRoute2 =(info) => {
 
 
 
-           }{this.state.pickupExpired && this.state.InSession && this.state.visible && 
+           }{this.state.pickupExpired && this.state.InSession &&
                <View style={{marginTop: 250, alignItems: 'center',marginBottom:150,backgroundColor: '#000', opacity: .8 }} >
                 
                  
@@ -2180,7 +2105,7 @@ drawRoute2 =(info) => {
                                        
                                     
                                 </View>
-            }{this.state.spinnerVisible && this.state.visible && 
+            }{this.state.spinnerVisible && 
                 <View style={{marginTop: 250, alignItems: 'center',marginBottom:120,backgroundColor: '#000', opacity: .8 }} >
                 
                  
@@ -2222,7 +2147,7 @@ drawRoute2 =(info) => {
                                 </View>
 
                 
-            }{this.state.confirmPickup2 &&  this.state.visible &&  <View style={{flex: 1, justifyContent: 'center', alignItems: 'center',}}>
+            }{this.state.confirmPickup2 &&   <View style={{flex: 1, justifyContent: 'center', alignItems: 'center',}}>
 
 
                                     <Modal
@@ -2354,7 +2279,7 @@ drawRoute2 =(info) => {
                                           </TouchableOpacity>
                                        </View>
                                     </Modal>
-                                </View>}{this.state.inOrder && this.state.visible && 
+                                </View>}{this.state.inOrder && 
           <Container style={{marginTop:125}}>
                 <Content style={{ opacity: .8}}>
                     <Card>
@@ -2407,7 +2332,7 @@ drawRoute2 =(info) => {
                         </CardItem>
                    </Card>
                 </Content>
-            </Container>}{this.state.orderCompleted && this.state.visible && 
+            </Container>}{this.state.orderCompleted && 
           <Container style={{marginTop:225}}>
                 <Content style={{ opacity: .9}}>
                     <Card>
@@ -2480,6 +2405,7 @@ function bindAction(dispatch) {
         pushNewRoute: (route) =>dispatch(pushNewRoute(route)),
     }
 }
+
 function mapStateToProps(state) {
 
     console.log("checkinguserset");
@@ -2493,7 +2419,6 @@ function mapStateToProps(state) {
     auth_token: state.route.users.access_token,
     is_driver_verified: state.route.users.is_driver_verified,
     payment_setup: state.route.users.payment_setup,
-    deliveries: state.route.users.pickups_in_progress,
 
     
   }
@@ -2510,8 +2435,6 @@ function mapStateToProps(state) {
   }
 }
 }
-
-
 
 
 

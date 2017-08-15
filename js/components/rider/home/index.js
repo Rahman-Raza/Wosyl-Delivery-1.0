@@ -6,6 +6,8 @@ import { connect } from 'react-redux';
 import polyline from 'polyline';
 import Modal from 'react-native-simple-modal';
 import { createSession } from '../../../actions/route';
+import Roww from './Roww';
+import PTRView from 'react-native-pull-to-refresh';
 
 var Spinner = require('react-native-spinkit');
 
@@ -14,7 +16,7 @@ import {BlurView} from 'react-native-blur';
 import LoadingOverlay from '../LoadingOverlay';
 import AwesomeButton from 'react-native-awesome-button';
 
-import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter, TouchableOpacity, AsyncStorage,Linking,AppState,TextInput} from 'react-native';
+import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter, TouchableOpacity, AsyncStorage,Linking,AppState,TextInput, ListView, RefreshControl} from 'react-native';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
 var Orientation = require('react-native-orientation');
 
@@ -31,7 +33,7 @@ import { TouchableHighlight} from 'react-native';
 
 import Form from 'react-native-form'
 
-import { pushNewRoute, replaceOrPushRoute } from '../../../actions/route';
+import { pushNewRoute, replaceOrPushRoute, resetRoute} from '../../../actions/route';
 import { createPickup } from '../../../actions/route';
 import { openDrawer } from '../../../actions/drawer';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -76,6 +78,9 @@ class Home extends Component {
     pushNewRoute(route) {
          this.props.pushNewRoute(route);
        }
+       resetRoute(route) {
+        this.props.resetRoute(route);
+       }
 
 
 
@@ -114,7 +119,8 @@ checkData = (data) =>{
 
     for (var key in Data){
    this.setState( {[key] : Data[key]});
-
+  // this.resetDeliveryData();
+ 
     }
 
     if (this.state.websocket){
@@ -177,13 +183,13 @@ checkData = (data) =>{
 
       AppState.removeEventListener('change', this.handleAppStateChange);
     
-<<<<<<< HEAD
+
     App.comments &&
             App.cable.subscriptions.remove(App.comments);
             console.log("finished removing websocket");
-=======
+
     this.setState({visiblePadding: 200})
->>>>>>> origin/master
+
   }
 
   saveTheState (){
@@ -339,7 +345,10 @@ var stateJSON = JSON.stringify(this.state);
       this.setState({spinnerVisible: false});
             console.log("checking data for pickupID fam", info.data.pickup);
       this.setState({InSession: true});
-      this.setState({inOrder: true});
+     //
+
+     this.fetchDeliveries();
+     this.resetOrderFlow();
 
       this.setState({fooditems: "allthefood"});
 
@@ -437,7 +446,9 @@ var stateJSON = JSON.stringify(this.state);
 
   cleanUpOrder = () =>{
     this.setState({InSession: false});
-    this.setState({ })
+    this.setState({orderCompleted: false});
+    
+    
   }
 
   handleAppStateChange = (appState) => {
@@ -523,11 +534,13 @@ onStarRatingPress = (rating) => {
 completeOrder = () =>{
   this.setState({inOrder: false});
   this.setState({InSession: false});
-  this.setState({})
-  this.setState({orderCompleted: false});
-  this.setState({})
- this.props.replaceOrPushRoute('home');
+
+  this.setState({orderCompleted: true});
+
+
 }
+
+
 
 destroyOrder = () =>{
 
@@ -621,25 +634,177 @@ var url = 'sms: '+this.state.driver_phone_number;
 }
 
  CancelOrder = () => {
+
+  if (this.state.inSession){
     this.destroyOrder();
+  }
     this.setState({spinnerVisible: false});
     this.setState({InSession: false});
     this.props.replaceOrPushRoute('home');
   }
 
 
+openDeliveries = () =>{
 
+  console.log("checking delivery data in state", this.state.DeliveryData);
+   const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+
+   var dataSource = ds.cloneWithRows(this.state.DeliveryData);
+  this.setState({dataSource: dataSource});
+  this.setState({ds: this.state.ds});
+
+if (!this.state.DeliveryModal){
+  
+  
+  
+  this.setState({visible: false});
+  this.setState({DeliveryModal: true});
+  //console.log("checking Del Data1", this.state.dataSource);
+  //this.DeliveryData.concat('fourth');
+ // console.log("checking Del Data", DeliveryData);
+ // var new_data = this.props.deliveries;
+ // this.setState({dataSource: this.state.ds.cloneWithRows(new_data)})
+}
+
+else{
+
+    
+  this.setState({visible: true});
+  this.setState({DeliveryModal: false});
+
+}
+  
+}
+
+fetchDeliveries = () =>{
+
+    fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/in_progress.json' , {
+                                                        method: 'GET',
+                                                        headers: {
+                                                          'Accept': 'application/json',
+                                                          'Content-Type': 'application/json',
+                                                          'X-Auth-Token': this.props.auth_token,
+                                                        },
+                                                       
+                                                      }) .then((response) => response.json())
+                                                            .then((responseJson) => {
+                                                           console.log("fetch delivery did happen", responseJson);
+
+                                                            if (responseJson.success){
+                                                              console.log("fetch delivery success");
+                                                            this.setState({DeliveryData: responseJson.pickups_in_progress});
+                                                            this.openDeliveries();
+                                                              
+                                                               
+                                                                 
+                                                            }
+
+                                                            else{
+                                                              
+                                                                
+                                                                 
+                                                             
+
+                                                            }
+
+                                                            
+                                                            }).done();
+
+}
+
+fetchDeliveryData = () =>{
+
+     fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/pickup/in_progress.json' , {
+                                                        method: 'GET',
+                                                        headers: {
+                                                          'Accept': 'application/json',
+                                                          'Content-Type': 'application/json',
+                                                          'X-Auth-Token': this.props.auth_token,
+                                                        },
+                                                       
+                                                      }) .then((response) => response.json())
+                                                            .then((responseJson) => {
+                                                           console.log("refresh delivery did happen", responseJson);
+
+                                                            if (responseJson.success){
+                                                              console.log("refresh delivery success");
+                                                            this.setState({DeliveryData: responseJson.pickups_in_progress});
+
+                                                          const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+                                                          var dataSource = ds.cloneWithRows(this.state.DeliveryData);
+                                                          this.setState({dataSource: dataSource});
+                                                          this.setState({ds: this.state.ds});
+
+                                                            
+                                                              
+                                                               
+                                                                 
+                                                            }
+
+                                                            else{
+                                                              
+                                                                
+                                                                 
+                                                             
+
+                                                            }
+
+                                                            
+                                                            });
+
+}
+
+refreshDeliveries = () =>{
+  this.fetchDeliveryData();
+}
+
+  resetOrderFlow = () =>{
+
+    console.log("got to resetOrderFlow");
+     this.setState({firstOption: true,
+            secondOptions: false,
+            open: false,
+             alreadyPaid: false,});
+  }
 
   
+resetDeliveryData = () =>{
+  const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 
+ 
+  if (this.props.deliveries){
+    var dataSource = ds.cloneWithRows(this.props.deliveries);
+  this.setState({dataSource: dataSource});
+  this.setState({ds: ds});
+  }
+
+  else{
+  var dataSource = ds.cloneWithRows([{item_pickedup: true, pickup_to: 'destination', pickup_from: 'origin', item: 'Food', notes: 'Notes'}]);
+  this.setState({dataSource: dataSource});
+  this.setState({ds: ds});
+  }
+}
 
 
     constructor(props) {
         super(props);
-
+  const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
        
-        
+       // const DeliveryData = {pickup: "nowhere", destination: "somewhere", user: "john"};
+       
+      
+        const DeliveryData = [{item_pickedup: true, pickup_to: 'destination', pickup_from: 'origin', item: 'Food', notes: 'Notes'}];
+      
+
+
+      
+
+
           this.state = {
+            refreshing: false,
+            ds: ds, 
+            DeliveryModal: false,
+             dataSource: ds.cloneWithRows(DeliveryData),
             firstOption: true,
             secondOptions: false,
             websocket: false,
@@ -724,12 +889,44 @@ this.setState({secondOptions: true});
   }
 
   goBack3(){
-    this.setState({confirmPickup2: false});
+    this.setState({paymentConfirmation: false});
     this.setState({confirmPickup: true});
     this.reDrawMap();
   }
 
-   createSession = (response) => {
+  goBack4(){
+    this.setState({paymentConfirmation_setup: false});
+    this.setState({confirmPickup: true});
+    this.reDrawMap();
+  }
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   onjk = (response) => {
       console.log("got to passedNonce");
 
       this.setState({confirmPickup: false});
@@ -744,10 +941,14 @@ this.setState({secondOptions: true});
 
    confirmTransaction = (pickupObject) =>{
 
+    console.log("got to CTR");
+
       if (this.props.payment_setup){
+        console.log("payment is setup for user");
       this.setState({paymentConfirmation: true});
     }
       else{
+        console.log("payment not setup for user");
         this.setState({paymentConfirmation_setup: true});
       }
 
@@ -940,7 +1141,7 @@ this.setState({secondOptions: true});
       var cost = this.state.cost;
      
 
-      console.log("checking first  auth_token", this.props.auth_token);
+      console.log("checking first  auth_token", this.props);
       fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_token.json', {
                                                             method: 'POST',
                                                             headers: {
@@ -964,6 +1165,7 @@ this.setState({secondOptions: true});
                                                                     this.passNonceToServer(pickupObject);
                                                                   }
                                                                   else{
+                                                                    console.log("got to confirmTransaction", this.props.payment_setup);
                                                                     this.confirmTransaction(pickupObject);
                                                                   }
 
@@ -1037,6 +1239,18 @@ this.setState({secondOptions: true});
 
 
 }
+
+createSession = (response) => {
+      console.log("got to passedNonce");
+
+      this.setState({confirmPickup: false});
+      this.setState({confirmPickup2: false});
+      this.setState({InSession: true});
+      this.setState({spinnerVisible: true});
+      console.log("set spinner true");
+
+      
+    }
 
   sendPickup(){
     this.setState({secondOptions :false});
@@ -1255,7 +1469,7 @@ distance_extractor = (data) => {
                                                           strokeAlpha: 1,
                                                            annotationImage: { // optional. Marker image for type=point
                                                                 source: {
-                                                                 uri: "https://i.imgsafe.org/4a7ae8dc81.png", // required. string. Either remote image URL or the name (without extension) of a bundled image
+                                                                 uri: "https://image.ibb.co/nGjqN5/green.png", // required. string. Either remote image URL or the name (without extension) of a bundled image
                                                                 },
                                                                 height: 100, // required. number. Image height
                                                                 width: 60, // required. number. Image width
@@ -1279,7 +1493,7 @@ distance_extractor = (data) => {
                                                           subtitle: " " ,
                                                           annotationImage: { // optional. Marker image for type=point
                                                                 source: {
-                                                                 uri: "https://i.imgsafe.org/4a7b6f2683.png", // required. string. Either remote image URL or the name (without extension) of a bundled image
+                                                                 uri: "https://image.ibb.co/fvvEh5/if_Facebook_UI_07_2344289.png", // required. string. Either remote image URL or the name (without extension) of a bundled image
                                                                 },
                                                                 height: 100, // required. number. Image height
                                                                 width: 60, // required. number. Image width
@@ -1492,6 +1706,11 @@ drawRoute2 =(info) => {
 
     driverModeSwitch = () => {
 
+
+  App.comments &&
+            App.cable.subscriptions.remove(App.comments);
+            console.log("finished removing websocket");
+            
   this.props.replaceOrPushRoute('driverHome');
 
 }
@@ -1516,8 +1735,7 @@ drawRoute2 =(info) => {
                   <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
                   <Content theme={theme}>
                   </Content>
-
-                  <View style={styles.map}>
+                                        <View style={styles.map}>
                         {(this.state.visible) ?
                         (<MapView ref={map => { this._map = map; }}
                             style={styles.map}
@@ -1545,18 +1763,35 @@ drawRoute2 =(info) => {
                             onOpenAnnotation={this.onOpenAnnotation}
                             onUpdateUserLocation={this.onUpdateUserLocation}/>)
                         : <View />
-                        }
-                    </View>
-                    
-                  <View style={styles.headerContainer}>
+                        }{this.state.DeliveryModal &&
+
+                 
+                                      
+                                       
+                                           <PTRView onRefresh={this.refreshDeliveries} >
+
+                                          <ListView
+                                          
+                                                style={styles.deliveryContainer}
+                                                 dataSource={this.state.dataSource}
+                                                 renderRow={(rowData) =>  <Roww {...rowData} />}/>
+                                                 </PTRView>
+                                                 
+                                               
+                                          
+                                          
+                                             
+              
+                                      }
+                    </View><View style={styles.headerContainer}>
                        <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
                            <Button transparent  onPress={ this.props.openDrawer
 
                            } >
                                <Icon name='ios-menu' />
-                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
+                           </Button>{!this.props.is_driver_verified && this.state.visible && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
                     
-                     </View>{this.props.is_driver_verified &&
+                     </View>{this.props.is_driver_verified && this.state.visible && 
                             <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
                         <Switch
                           onValueChange={(value) => this.driverModeSwitch()}
@@ -1564,11 +1799,19 @@ drawRoute2 =(info) => {
                           value={false} />
                           <Text style={{color:'#fff'}}>Driver Mode</Text>
                         
-                      </View>}{!this.props.is_driver_verified &&
+                      </View>}{this.state.visible &&
                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
-                        <Button transparent  onPress={ this.props.openDrawer} >
-                               
-                               <Text style={{color:'#fff'}}>Current Order</Text>
+                        <Button transparent onPress={ () => this.fetchDeliveries() } >
+                               <Icon style={{color: '#fff'}} name='logo-buffer' />
+                               <Text style={{color:'#fff'}}>Orders</Text>
+                        </Button>
+                          
+                        
+                      </View>}{!this.state.visible &&
+                           <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
+                        <Button transparent onPress={ () => this.fetchDeliveries() } >
+                               <Icon name='ios-map' />
+                               <Text style={{color:'#000'}}>Map</Text>
                         </Button>
                           
                         
@@ -1590,7 +1833,7 @@ drawRoute2 =(info) => {
                                              
                                           </TouchableOpacity>
                                        </View>
-                                    </Modal>{this.state.firstOption && 
+                                    </Modal>{this.state.firstOption && this.state.visible && 
 
                                       <View style={{padding: 10}}>
                         
@@ -1740,7 +1983,7 @@ drawRoute2 =(info) => {
 
                               
                             
-                        </View>}{ this.state.firstOption &&
+                        </View>}{ this.state.firstOption && this.state.visible && 
                         <View style={{padding: 10, paddingBottom: this.state.visiblePadding}}>
                        
                             <GooglePlacesAutocomplete
@@ -1888,7 +2131,7 @@ drawRoute2 =(info) => {
                                 
                             </GooglePlacesAutocomplete>
                             
-                        </View>}{this.state.firstOption &&
+                        </View>}{this.state.firstOption && this.state.visible && 
                           <View style={{padding: 10}}>
 
 
@@ -1913,7 +2156,7 @@ drawRoute2 =(info) => {
                         </Button>
 
                         
-                        </View>}{this.state.secondOptions &&
+                        </View>}{this.state.secondOptions && this.state.visible && 
 
                           <View style={{marginTop: 20}}>
                
@@ -1930,7 +2173,7 @@ drawRoute2 =(info) => {
                         </View>
 
                        
-<<<<<<< HEAD
+
                         <View style={{padding: 10,}}>
                        <InputGroup borderType='rounded' style={{marginLeft: 30, marginRight:30, color:'#000', backgroundColor:'#fff'}}>
                                 <Icon name='ios-paper' style={{color:'#16ADD4'}}/>
@@ -1943,8 +2186,8 @@ drawRoute2 =(info) => {
                             
                         </View>
 
-=======
->>>>>>> origin/master
+
+
                         <View style={{padding: 10, paddingBottom: this.state.visiblePadding}}>
                       
 
@@ -1976,7 +2219,7 @@ drawRoute2 =(info) => {
 
 
 
-                        }{this.state.confirmPickup &&
+                        }{this.state.confirmPickup && this.state.visible && 
 
                            <View style={{paddingBottom: 150}}>
                    
@@ -2050,7 +2293,7 @@ drawRoute2 =(info) => {
 
 
 
-           }{this.state.pickupExpired && this.state.InSession &&
+           }{this.state.pickupExpired && this.state.InSession && this.state.visible && 
                <View style={{marginTop: 250, alignItems: 'center',marginBottom:150,backgroundColor: '#000', opacity: .8 }} >
                 
                  
@@ -2090,7 +2333,7 @@ drawRoute2 =(info) => {
                                        
                                     
                                 </View>
-            }{this.state.spinnerVisible && 
+            }{this.state.spinnerVisible && this.state.visible && 
                 <View style={{marginTop: 250, alignItems: 'center',marginBottom:120,backgroundColor: '#000', opacity: .8 }} >
                 
                  
@@ -2132,7 +2375,7 @@ drawRoute2 =(info) => {
                                 </View>
 
                 
-            }{this.state.confirmPickup2 &&   <View style={{flex: 1, justifyContent: 'center', alignItems: 'center',}}>
+            }{this.state.confirmPickup2 &&  this.state.visible &&  <View style={{flex: 1, justifyContent: 'center', alignItems: 'center',}}>
 
 
                                     <Modal
@@ -2256,6 +2499,14 @@ drawRoute2 =(info) => {
                                                             }}  underlayColor='#99d9f4'>
                                               <Text style={styles.buttonText}>New Payment Setup</Text>
                                             </Button>
+
+                                             <Button rounded bordered block style={{marginLeft: 30, marginRight:30,marginTop:10,  backgroundColor: '#48BBEC',
+                                                    borderColor: '#48BBEC',}} onPress={() => {
+                   
+                                                        this.goBack4(); }}  
+                                                        underlayColor='#99d9f4'>
+                                                <Text style={styles.buttonText}>Go Back</Text>
+                                              </Button>
                                           
                                           <TouchableOpacity
                                              style={{margin: 5}}
@@ -2264,7 +2515,7 @@ drawRoute2 =(info) => {
                                           </TouchableOpacity>
                                        </View>
                                     </Modal>
-                                </View>}{this.state.inOrder && 
+                                </View>}{this.state.inOrder && this.state.visible && 
           <Container style={{marginTop:125}}>
                 <Content style={{ opacity: .8}}>
                     <Card>
@@ -2317,7 +2568,7 @@ drawRoute2 =(info) => {
                         </CardItem>
                    </Card>
                 </Content>
-            </Container>}{this.state.orderCompleted && 
+            </Container>}{this.state.orderCompleted && this.state.visible && 
           <Container style={{marginTop:225}}>
                 <Content style={{ opacity: .9}}>
                     <Card>
@@ -2387,9 +2638,9 @@ function bindAction(dispatch) {
         replaceRoute:(route)=>dispatch(replaceRoute(route)),
         createPickup: (route,pickup) =>dispatch(createPickup(route,pickup)),
         createSession: (route,pickup) =>dispatch(createSession(route,pickup)),
+        pushNewRoute: (route) =>dispatch(pushNewRoute(route)),
     }
 }
-
 function mapStateToProps(state) {
 
     console.log("checkinguserset");
@@ -2403,6 +2654,7 @@ function mapStateToProps(state) {
     auth_token: state.route.users.access_token,
     is_driver_verified: state.route.users.is_driver_verified,
     payment_setup: state.route.users.payment_setup,
+    deliveries: state.route.users.pickups_in_progress,
 
     
   }
@@ -2419,6 +2671,8 @@ function mapStateToProps(state) {
   }
 }
 }
+
+
 
 
 

@@ -6,7 +6,6 @@ import { connect } from 'react-redux';
 import polyline from 'polyline';
 import Modal from 'react-native-simple-modal';
 import { createSession } from '../../../actions/route';
-import Roww from './Roww'
 
 var Spinner = require('react-native-spinkit');
 
@@ -15,7 +14,7 @@ import {BlurView} from 'react-native-blur';
 import LoadingOverlay from '../LoadingOverlay';
 import AwesomeButton from 'react-native-awesome-button';
 
-import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter, TouchableOpacity, AsyncStorage,Linking,AppState,TextInput, ListView} from 'react-native';
+import { Image, View, Dimensions, Platform, StatusBar, Switch, Slider, DatePickerIOS, Picker, PickerIOS, ProgressViewIOS, ScrollView, DeviceEventEmitter, TouchableOpacity, AsyncStorage,Linking,AppState,TextInput} from 'react-native';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
 var Orientation = require('react-native-orientation');
 
@@ -31,6 +30,16 @@ import { TouchableHighlight} from 'react-native';
 
 
 import Form from 'react-native-form'
+
+import firstOptions from '../home/firstOptions.js';
+import {secondOptions} from '../home/secondOptions.js';
+import {confirmPickup} from '../home/confirmPickup.js';
+import { pickupExpiredAndInSession} from '../home/pickupExpiredAndInSession.js';
+import {spinnerVisible} from '../home/spinnerVisible.js';
+import {confirmPickup2} from '../home/confirmPickup2.js';
+import {inOrder} from '../home/inOrder.js';
+
+import {orderCompleted} from '../home/orderCompleted.js';
 
 import { pushNewRoute, replaceOrPushRoute, resetRoute} from '../../../actions/route';
 import { createPickup } from '../../../actions/route';
@@ -118,8 +127,7 @@ checkData = (data) =>{
 
     for (var key in Data){
    this.setState( {[key] : Data[key]});
-  this.resetDeliveryData();
- 
+
     }
 
     if (this.state.websocket){
@@ -640,73 +648,19 @@ var url = 'sms: '+this.state.driver_phone_number;
   }
 
 
-openDeliveries = () =>{
 
-if (!this.state.DeliveryModal){
-  
-  
-  
-  this.setState({visible: false});
-  this.setState({DeliveryModal: true});
-  //console.log("checking Del Data1", this.state.dataSource);
-  //this.DeliveryData.concat('fourth');
- // console.log("checking Del Data", DeliveryData);
- // var new_data = this.props.deliveries;
- // this.setState({dataSource: this.state.ds.cloneWithRows(new_data)})
-}
-
-else{
-
-    
-  this.setState({visible: true});
-  this.setState({DeliveryModal: false});
-
-}
-  
-}
 
   
-resetDeliveryData = () =>{
-  const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 
-
-  if (this.props.deliveries.length > 0){
-    var dataSource = ds.cloneWithRows(this.props.deliveries);
-  this.setState({dataSource: dataSource});
-  this.setState({ds: ds});
-  }
-
-  else{
-  var dataSource = ds.cloneWithRows([{item_pickedup: true, pickup_to: 'destination', pickup_from: 'origin', item: 'Food', notes: 'Notes'}]);
-  this.setState({dataSource: dataSource});
-  this.setState({ds: ds});
-  }
-}
 
 
     constructor(props) {
         super(props);
-  const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
+
        
-       // const DeliveryData = {pickup: "nowhere", destination: "somewhere", user: "john"};
-       
-       var DeliveryData = [];
-       if(this.props.deliveries){
-        const DeliveryData = this.props.deliveries;
-      }
-      else{
-        const DeliveryData = [{item_pickedup: true, pickup_to: 'destination', pickup_from: 'origin', item: 'Food', notes: 'Notes'}];
-      }
-
-
-      
-
-
+        
           this.state = {
-            ds: ds, 
-            DeliveryModal: false,
-             dataSource: ds.cloneWithRows(DeliveryData),
-            firstOption: true,
+            firstOptions: true,
             secondOptions: false,
             websocket: false,
             open: false,
@@ -810,14 +764,10 @@ this.setState({secondOptions: true});
 
    confirmTransaction = (pickupObject) =>{
 
-    console.log("got to CTR");
-
       if (this.props.payment_setup){
-        console.log("payment is setup for user");
       this.setState({paymentConfirmation: true});
     }
       else{
-        console.log("payment not setup for user");
         this.setState({paymentConfirmation_setup: true});
       }
 
@@ -1010,7 +960,7 @@ this.setState({secondOptions: true});
       var cost = this.state.cost;
      
 
-      console.log("checking first  auth_token", this.props);
+      console.log("checking first  auth_token", this.props.auth_token);
       fetch('http://ec2-52-39-54-57.us-west-2.compute.amazonaws.com/api/get_braintree_token.json', {
                                                             method: 'POST',
                                                             headers: {
@@ -1034,7 +984,6 @@ this.setState({secondOptions: true});
                                                                     this.passNonceToServer(pickupObject);
                                                                   }
                                                                   else{
-                                                                    console.log("got to confirmTransaction", this.props.payment_setup);
                                                                     this.confirmTransaction(pickupObject);
                                                                   }
 
@@ -1563,11 +1512,6 @@ drawRoute2 =(info) => {
 
     driverModeSwitch = () => {
 
-
-  App.comments &&
-            App.cable.subscriptions.remove(App.comments);
-            console.log("finished removing websocket");
-            
   this.props.replaceOrPushRoute('driverHome');
 
 }
@@ -1586,13 +1530,15 @@ drawRoute2 =(info) => {
         }
         
       }
-        return (
-                 
-                <View style={styles.container}>
+
+      if (this.state.firstOptions){
+
+        return ( <View style={styles.container}>
                   <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
                   <Content theme={theme}>
                   </Content>
-                                        <View style={styles.map}>
+
+                  <View style={styles.map}>
                         {(this.state.visible) ?
                         (<MapView ref={map => { this._map = map; }}
                             style={styles.map}
@@ -1620,33 +1566,18 @@ drawRoute2 =(info) => {
                             onOpenAnnotation={this.onOpenAnnotation}
                             onUpdateUserLocation={this.onUpdateUserLocation}/>)
                         : <View />
-                        }{this.state.DeliveryModal &&
-
-                 
-                                      
-                                       
-                                          
-
-                                          <ListView
-                                                style={styles.deliveryContainer}
-                                                 dataSource={this.state.dataSource}
-                                                 renderRow={(rowData) =>  <Roww {...rowData} />}/>
-                                                 
-                                               
-                                          
-                                          
-                                             
-              
-                                      }
-                    </View><View style={styles.headerContainer}>
+                        }
+                    </View>
+                    
+                  <View style={styles.headerContainer}>
                        <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
                            <Button transparent  onPress={ this.props.openDrawer
 
                            } >
                                <Icon name='ios-menu' />
-                           </Button>{!this.props.is_driver_verified && this.state.visible && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
+                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
                     
-                     </View>{this.props.is_driver_verified && this.state.visible && 
+                     </View>{this.props.is_driver_verified &&
                             <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
                         <Switch
                           onValueChange={(value) => this.driverModeSwitch()}
@@ -1654,11 +1585,11 @@ drawRoute2 =(info) => {
                           value={false} />
                           <Text style={{color:'#fff'}}>Driver Mode</Text>
                         
-                      </View>}{
+                      </View>}{!this.props.is_driver_verified &&
                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
-                        <Button transparent onPress={ () => this.openDeliveries() } >
+                        <Button transparent  onPress={ this.props.openDrawer} >
                                
-                               <Text style={{color:'#000'}}>Orders</Text>
+                               <Text style={{color:'#fff'}}>Current Order</Text>
                         </Button>
                           
                         
@@ -1680,9 +1611,9 @@ drawRoute2 =(info) => {
                                              
                                           </TouchableOpacity>
                                        </View>
-                                    </Modal>{this.state.firstOption && this.state.visible && 
+                                    </Modal>
 
-                                      <View style={{padding: 10}}>
+                                     <View style={{padding: 10}}>
                         
        
                    
@@ -1830,7 +1761,7 @@ drawRoute2 =(info) => {
 
                               
                             
-                        </View>}{ this.state.firstOption && this.state.visible && 
+                        </View>
                         <View style={{padding: 10, paddingBottom: this.state.visiblePadding}}>
                        
                             <GooglePlacesAutocomplete
@@ -1978,7 +1909,7 @@ drawRoute2 =(info) => {
                                 
                             </GooglePlacesAutocomplete>
                             
-                        </View>}{this.state.firstOption && this.state.visible && 
+                        </View>
                           <View style={{padding: 10}}>
 
 
@@ -2003,9 +1934,93 @@ drawRoute2 =(info) => {
                         </Button>
 
                         
-                        </View>}{this.state.secondOptions && this.state.visible && 
+                        </View>
+                        </View>)
 
-                          <View style={{marginTop: 20}}>
+      }
+
+      else if( this.state.secondOptions){
+        return (<View style={styles.container}>
+                  <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
+                  <Content theme={theme}>
+                  </Content>
+
+                  <View style={styles.map}>
+                        {(this.state.visible) ?
+                        (<MapView ref={map => { this._map = map; }}
+                            style={styles.map}
+                             styleURL={Mapbox.mapStyles.dark}   
+                            rotateEnabled={true}
+                            zoomEnabled={true}
+                            showsUserLocation={true}
+                            attributionButtonIsHidden = {false}
+                            logoIsHidden = {true}
+                            compassIsHidden = {true}
+                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
+                            initalZoomLevel = {13}
+                            centerCoordinate={this.state.center}
+                            userLocationVisible={true}
+                            userTrackingMode = {Mapbox.userTrackingMode.follow}
+                            annotations={this.state.annotations}
+                            annotationsAreImmutable
+                            onFinishLoadingMap = {this.onFinishLoadingMap}
+                            
+                            
+                            debugActive={false}
+                            direction={this.state.direction}
+                            
+                            
+                            onOpenAnnotation={this.onOpenAnnotation}
+                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
+                        : <View />
+                        }
+                    </View>
+                    
+                  <View style={styles.headerContainer}>
+                       <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
+                           <Button transparent  onPress={ this.props.openDrawer
+
+                           } >
+                               <Icon name='ios-menu' />
+                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
+                    
+                     </View>{this.props.is_driver_verified &&
+                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
+                        <Switch
+                          onValueChange={(value) => this.driverModeSwitch()}
+                          style={{marginBottom: 10}}
+                          value={false} />
+                          <Text style={{color:'#fff'}}>Driver Mode</Text>
+                        
+                      </View>}{!this.props.is_driver_verified &&
+                           <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
+                        <Button transparent  onPress={ this.props.openDrawer} >
+                               
+                               <Text style={{color:'#fff'}}>Current Order</Text>
+                        </Button>
+                          
+                        
+                      </View>}<Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.open}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({open: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                       <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({open: false})}>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>Please enter a pickup location and destination</Text>
+                                          
+                                          
+                                             
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+
+                                            <View style={{marginTop: 20}}>
                
                        
                
@@ -2062,13 +2077,90 @@ drawRoute2 =(info) => {
                         </View>
                         
                      </View>
+                     </View>)
+      }
 
+      else if (this.state.confirmPickup){
+        return (<View style={styles.container}>
+                  <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
+                  <Content theme={theme}>
+                  </Content>
 
+                  <View style={styles.map}>
+                        {(this.state.visible) ?
+                        (<MapView ref={map => { this._map = map; }}
+                            style={styles.map}
+                             styleURL={Mapbox.mapStyles.dark}   
+                            rotateEnabled={true}
+                            zoomEnabled={true}
+                            showsUserLocation={true}
+                            attributionButtonIsHidden = {false}
+                            logoIsHidden = {true}
+                            compassIsHidden = {true}
+                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
+                            initalZoomLevel = {13}
+                            centerCoordinate={this.state.center}
+                            userLocationVisible={true}
+                            userTrackingMode = {Mapbox.userTrackingMode.follow}
+                            annotations={this.state.annotations}
+                            annotationsAreImmutable
+                            onFinishLoadingMap = {this.onFinishLoadingMap}
+                            
+                            
+                            debugActive={false}
+                            direction={this.state.direction}
+                            
+                            
+                            onOpenAnnotation={this.onOpenAnnotation}
+                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
+                        : <View />
+                        }
+                    </View>
+                    
+                  <View style={styles.headerContainer}>
+                       <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
+                           <Button transparent  onPress={ this.props.openDrawer
 
-
-                        }{this.state.confirmPickup && this.state.visible && 
-
-                           <View style={{paddingBottom: 150}}>
+                           } >
+                               <Icon name='ios-menu' />
+                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
+                    
+                     </View>{this.props.is_driver_verified &&
+                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
+                        <Switch
+                          onValueChange={(value) => this.driverModeSwitch()}
+                          style={{marginBottom: 10}}
+                          value={false} />
+                          <Text style={{color:'#fff'}}>Driver Mode</Text>
+                        
+                      </View>}{!this.props.is_driver_verified &&
+                           <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
+                        <Button transparent  onPress={ this.props.openDrawer} >
+                               
+                               <Text style={{color:'#fff'}}>Current Order</Text>
+                        </Button>
+                          
+                        
+                      </View>}<Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.open}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({open: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                       <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({open: false})}>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>Please enter a pickup location and destination</Text>
+                                          
+                                          
+                                             
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+                                    <View style={{paddingBottom: 150}}>
                    
                    
                     
@@ -2136,12 +2228,90 @@ drawRoute2 =(info) => {
 
                  
                     </View>
+                    </View>)
+      }
 
+      else if(this.state.pickupExpired && this.state.inSession){
+        return (<View style={styles.container}>
+                  <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
+                  <Content theme={theme}>
+                  </Content>
 
+                  <View style={styles.map}>
+                        {(this.state.visible) ?
+                        (<MapView ref={map => { this._map = map; }}
+                            style={styles.map}
+                             styleURL={Mapbox.mapStyles.dark}   
+                            rotateEnabled={true}
+                            zoomEnabled={true}
+                            showsUserLocation={true}
+                            attributionButtonIsHidden = {false}
+                            logoIsHidden = {true}
+                            compassIsHidden = {true}
+                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
+                            initalZoomLevel = {13}
+                            centerCoordinate={this.state.center}
+                            userLocationVisible={true}
+                            userTrackingMode = {Mapbox.userTrackingMode.follow}
+                            annotations={this.state.annotations}
+                            annotationsAreImmutable
+                            onFinishLoadingMap = {this.onFinishLoadingMap}
+                            
+                            
+                            debugActive={false}
+                            direction={this.state.direction}
+                            
+                            
+                            onOpenAnnotation={this.onOpenAnnotation}
+                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
+                        : <View />
+                        }
+                    </View>
+                    
+                  <View style={styles.headerContainer}>
+                       <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
+                           <Button transparent  onPress={ this.props.openDrawer
 
-
-           }{this.state.pickupExpired && this.state.InSession && this.state.visible && 
-               <View style={{marginTop: 250, alignItems: 'center',marginBottom:150,backgroundColor: '#000', opacity: .8 }} >
+                           } >
+                               <Icon name='ios-menu' />
+                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
+                    
+                     </View>{this.props.is_driver_verified &&
+                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
+                        <Switch
+                          onValueChange={(value) => this.driverModeSwitch()}
+                          style={{marginBottom: 10}}
+                          value={false} />
+                          <Text style={{color:'#fff'}}>Driver Mode</Text>
+                        
+                      </View>}{!this.props.is_driver_verified &&
+                           <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
+                        <Button transparent  onPress={ this.props.openDrawer} >
+                               
+                               <Text style={{color:'#fff'}}>Current Order</Text>
+                        </Button>
+                          
+                        
+                      </View>}<Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.open}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({open: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                       <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({open: false})}>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>Please enter a pickup location and destination</Text>
+                                          
+                                          
+                                             
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+                                    <View style={{marginTop: 250, alignItems: 'center',marginBottom:150,backgroundColor: '#000', opacity: .8 }} >
                 
                  
                                    
@@ -2169,19 +2339,91 @@ drawRoute2 =(info) => {
                                                         <Text style={{fontWeight: '600',color: '#fff'}}>    </Text>
                                                       
                                             </View>
+                                            </View>
+                                            </View>)
+      }
 
+      else if (this.state.spinnerVisible){
+        return ( <View style={styles.container}>
+                  <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
+                  <Content theme={theme}>
+                  </Content>
 
-                                         
+                  <View style={styles.map}>
+                        {(this.state.visible) ?
+                        (<MapView ref={map => { this._map = map; }}
+                            style={styles.map}
+                             styleURL={Mapbox.mapStyles.dark}   
+                            rotateEnabled={true}
+                            zoomEnabled={true}
+                            showsUserLocation={true}
+                            attributionButtonIsHidden = {false}
+                            logoIsHidden = {true}
+                            compassIsHidden = {true}
+                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
+                            initalZoomLevel = {13}
+                            centerCoordinate={this.state.center}
+                            userLocationVisible={true}
+                            userTrackingMode = {Mapbox.userTrackingMode.follow}
+                            annotations={this.state.annotations}
+                            annotationsAreImmutable
+                            onFinishLoadingMap = {this.onFinishLoadingMap}
+                            
+                            
+                            debugActive={false}
+                            direction={this.state.direction}
+                            
+                            
+                            onOpenAnnotation={this.onOpenAnnotation}
+                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
+                        : <View />
+                        }
+                    </View>
+                    
+                  <View style={styles.headerContainer}>
+                       <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
+                           <Button transparent  onPress={ this.props.openDrawer
 
-                                                   
-                                                                                      
-                                           
+                           } >
+                               <Icon name='ios-menu' />
+                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
+                    
+                     </View>{this.props.is_driver_verified &&
+                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
+                        <Switch
+                          onValueChange={(value) => this.driverModeSwitch()}
+                          style={{marginBottom: 10}}
+                          value={false} />
+                          <Text style={{color:'#fff'}}>Driver Mode</Text>
+                        
+                      </View>}{!this.props.is_driver_verified &&
+                           <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
+                        <Button transparent  onPress={ this.props.openDrawer} >
+                               
+                               <Text style={{color:'#fff'}}>Current Order</Text>
+                        </Button>
+                          
+                        
+                      </View>}<Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.open}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({open: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                       <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({open: false})}>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>Please enter a pickup location and destination</Text>
                                           
-                                       
-                                    
-                                </View>
-            }{this.state.spinnerVisible && this.state.visible && 
-                <View style={{marginTop: 250, alignItems: 'center',marginBottom:120,backgroundColor: '#000', opacity: .8 }} >
+                                          
+                                             
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+                                    <View style={{marginTop: 250, alignItems: 'center',marginBottom:120,backgroundColor: '#000', opacity: .8 }} >
                 
                  
                     <Spinner style={{marginRight: 20}} isVisible={true} size={100} type={'Circle'} color={"#3DA000"}/>
@@ -2220,9 +2462,90 @@ drawRoute2 =(info) => {
                                        
                                     
                                 </View>
+                                </View>)
+      }
 
-                
-            }{this.state.confirmPickup2 &&  this.state.visible &&  <View style={{flex: 1, justifyContent: 'center', alignItems: 'center',}}>
+      else if (this.state.confirmPickup2){
+        return (<View style={styles.container}>
+                  <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
+                  <Content theme={theme}>
+                  </Content>
+
+                  <View style={styles.map}>
+                        {(this.state.visible) ?
+                        (<MapView ref={map => { this._map = map; }}
+                            style={styles.map}
+                             styleURL={Mapbox.mapStyles.dark}   
+                            rotateEnabled={true}
+                            zoomEnabled={true}
+                            showsUserLocation={true}
+                            attributionButtonIsHidden = {false}
+                            logoIsHidden = {true}
+                            compassIsHidden = {true}
+                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
+                            initalZoomLevel = {13}
+                            centerCoordinate={this.state.center}
+                            userLocationVisible={true}
+                            userTrackingMode = {Mapbox.userTrackingMode.follow}
+                            annotations={this.state.annotations}
+                            annotationsAreImmutable
+                            onFinishLoadingMap = {this.onFinishLoadingMap}
+                            
+                            
+                            debugActive={false}
+                            direction={this.state.direction}
+                            
+                            
+                            onOpenAnnotation={this.onOpenAnnotation}
+                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
+                        : <View />
+                        }
+                    </View>
+                    
+                  <View style={styles.headerContainer}>
+                       <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
+                           <Button transparent  onPress={ this.props.openDrawer
+
+                           } >
+                               <Icon name='ios-menu' />
+                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
+                    
+                     </View>{this.props.is_driver_verified &&
+                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
+                        <Switch
+                          onValueChange={(value) => this.driverModeSwitch()}
+                          style={{marginBottom: 10}}
+                          value={false} />
+                          <Text style={{color:'#fff'}}>Driver Mode</Text>
+                        
+                      </View>}{!this.props.is_driver_verified &&
+                           <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
+                        <Button transparent  onPress={ this.props.openDrawer} >
+                               
+                               <Text style={{color:'#fff'}}>Current Order</Text>
+                        </Button>
+                          
+                        
+                      </View>}<Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.open}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({open: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                       <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({open: false})}>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>Please enter a pickup location and destination</Text>
+                                          
+                                          
+                                             
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+                                    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center',}}>
 
 
                                     <Modal
@@ -2354,8 +2677,91 @@ drawRoute2 =(info) => {
                                           </TouchableOpacity>
                                        </View>
                                     </Modal>
-                                </View>}{this.state.inOrder && this.state.visible && 
-          <Container style={{marginTop:125}}>
+                                </View>
+                                </View>)
+      }
+
+      else if (this.state.inOrder){
+        return (<View style={styles.container}>
+                  <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
+                  <Content theme={theme}>
+                  </Content>
+
+                  <View style={styles.map}>
+                        {(this.state.visible) ?
+                        (<MapView ref={map => { this._map = map; }}
+                            style={styles.map}
+                             styleURL={Mapbox.mapStyles.dark}   
+                            rotateEnabled={true}
+                            zoomEnabled={true}
+                            showsUserLocation={true}
+                            attributionButtonIsHidden = {false}
+                            logoIsHidden = {true}
+                            compassIsHidden = {true}
+                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
+                            initalZoomLevel = {13}
+                            centerCoordinate={this.state.center}
+                            userLocationVisible={true}
+                            userTrackingMode = {Mapbox.userTrackingMode.follow}
+                            annotations={this.state.annotations}
+                            annotationsAreImmutable
+                            onFinishLoadingMap = {this.onFinishLoadingMap}
+                            
+                            
+                            debugActive={false}
+                            direction={this.state.direction}
+                            
+                            
+                            onOpenAnnotation={this.onOpenAnnotation}
+                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
+                        : <View />
+                        }
+                    </View>
+                    
+                  <View style={styles.headerContainer}>
+                       <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
+                           <Button transparent  onPress={ this.props.openDrawer
+
+                           } >
+                               <Icon name='ios-menu' />
+                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
+                    
+                     </View>{this.props.is_driver_verified &&
+                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
+                        <Switch
+                          onValueChange={(value) => this.driverModeSwitch()}
+                          style={{marginBottom: 10}}
+                          value={false} />
+                          <Text style={{color:'#fff'}}>Driver Mode</Text>
+                        
+                      </View>}{!this.props.is_driver_verified &&
+                           <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
+                        <Button transparent  onPress={ this.props.openDrawer} >
+                               
+                               <Text style={{color:'#fff'}}>Current Order</Text>
+                        </Button>
+                          
+                        
+                      </View>}<Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.open}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({open: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                       <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({open: false})}>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>Please enter a pickup location and destination</Text>
+                                          
+                                          
+                                             
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+                                    <Container style={{marginTop:125}}>
                 <Content style={{ opacity: .8}}>
                     <Card>
                         <CardItem style={{alignItems: 'center'}}>
@@ -2407,8 +2813,92 @@ drawRoute2 =(info) => {
                         </CardItem>
                    </Card>
                 </Content>
-            </Container>}{this.state.orderCompleted && this.state.visible && 
-          <Container style={{marginTop:225}}>
+            </Container>
+            </View>)
+      }
+
+      else if (this.state.orderCompleted){
+        return (<View style={styles.container}>
+                  <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
+                  <Content theme={theme}>
+                  </Content>
+
+                  <View style={styles.map}>
+                        {(this.state.visible) ?
+                        (<MapView ref={map => { this._map = map; }}
+                            style={styles.map}
+                             styleURL={Mapbox.mapStyles.dark}   
+                            rotateEnabled={true}
+                            zoomEnabled={true}
+                            showsUserLocation={true}
+                            attributionButtonIsHidden = {false}
+                            logoIsHidden = {true}
+                            compassIsHidden = {true}
+                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
+                            initalZoomLevel = {13}
+                            centerCoordinate={this.state.center}
+                            userLocationVisible={true}
+                            userTrackingMode = {Mapbox.userTrackingMode.follow}
+                            annotations={this.state.annotations}
+                            annotationsAreImmutable
+                            onFinishLoadingMap = {this.onFinishLoadingMap}
+                            
+                            
+                            debugActive={false}
+                            direction={this.state.direction}
+                            
+                            
+                            onOpenAnnotation={this.onOpenAnnotation}
+                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
+                        : <View />
+                        }
+                    </View>
+                    
+                  <View style={styles.headerContainer}>
+                       <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
+                           <Button transparent  onPress={ this.props.openDrawer
+
+                           } >
+                               <Icon name='ios-menu' />
+                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
+                    
+                     </View>{this.props.is_driver_verified &&
+                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
+                        <Switch
+                          onValueChange={(value) => this.driverModeSwitch()}
+                          style={{marginBottom: 10}}
+                          value={false} />
+                          <Text style={{color:'#fff'}}>Driver Mode</Text>
+                        
+                      </View>}{!this.props.is_driver_verified &&
+                           <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
+                        <Button transparent  onPress={ this.props.openDrawer} >
+                               
+                               <Text style={{color:'#fff'}}>Current Order</Text>
+                        </Button>
+                          
+                        
+                      </View>}<Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.open}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({open: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                       <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({open: false})}>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>Please enter a pickup location and destination</Text>
+                                          
+                                          
+                                             
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+
+                                    <Container style={{marginTop:225}}>
                 <Content style={{ opacity: .9}}>
                     <Card>
                         <CardItem style={{alignItems: 'center'}}>
@@ -2458,10 +2948,94 @@ drawRoute2 =(info) => {
                         </CardItem>
                    </Card>
                 </Content>
-            </Container>}</View>
-                
-               
-        )
+            </Container>
+            </View>)
+
+      }
+
+      else return (<View style={styles.container}>
+                  <StatusBar barStyle='light-content' networkActivityIndicatorVisible='true' />
+                  <Content theme={theme}>
+                  </Content>
+
+                  <View style={styles.map}>
+                        {(this.state.visible) ?
+                        (<MapView ref={map => { this._map = map; }}
+                            style={styles.map}
+                             styleURL={Mapbox.mapStyles.dark}   
+                            rotateEnabled={true}
+                            zoomEnabled={true}
+                            showsUserLocation={true}
+                            attributionButtonIsHidden = {false}
+                            logoIsHidden = {true}
+                            compassIsHidden = {true}
+                            accessToken={'sk.eyJ1Ijoid29zeWwxMjMiLCJhIjoiY2l0NmxxdnJpMDAwNDMwbWZtY21jdmp2NiJ9.H2G2P39VR7kEkEtz0Ji3lw'}
+                            initalZoomLevel = {13}
+                            centerCoordinate={this.state.center}
+                            userLocationVisible={true}
+                            userTrackingMode = {Mapbox.userTrackingMode.follow}
+                            annotations={this.state.annotations}
+                            annotationsAreImmutable
+                            onFinishLoadingMap = {this.onFinishLoadingMap}
+                            
+                            
+                            debugActive={false}
+                            direction={this.state.direction}
+                            
+                            
+                            onOpenAnnotation={this.onOpenAnnotation}
+                            onUpdateUserLocation={this.onUpdateUserLocation}/>)
+                        : <View />
+                        }
+                    </View>
+                    
+                  <View style={styles.headerContainer}>
+                       <Header style={Platform.OS === 'ios' ? styles.iosHeader : styles.aHeader }>
+                           <Button transparent  onPress={ this.props.openDrawer
+
+                           } >
+                               <Icon name='ios-menu' />
+                           </Button>{!this.props.is_driver_verified && <Title style={{marginTop:15, marginRight:10}}> <Image style={{marginRight:18, marginTop: 15}} source={require('../home/half1.png')}></Image></Title>}</Header>
+                    
+                     </View>{this.props.is_driver_verified &&
+                            <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20,left: 140}}> 
+                        <Switch
+                          onValueChange={(value) => this.driverModeSwitch()}
+                          style={{marginBottom: 10}}
+                          value={false} />
+                          <Text style={{color:'#fff'}}>Driver Mode</Text>
+                        
+                      </View>}{!this.props.is_driver_verified &&
+                           <View style={{justifyContent: 'center', alignItems: 'center',position: 'absolute', top:20, left: 260}}> 
+                        <Button transparent  onPress={ this.props.openDrawer} >
+                               
+                               <Text style={{color:'#fff'}}>Current Order</Text>
+                        </Button>
+                          
+                        
+                      </View>}<Modal
+                                       offset={-100}
+                                       overlayBackground={'rgba(0, 0, 0, 0.55)'}
+                                       closeOnTouchOutside={true}
+                                       open={this.state.open}
+                                       modalDidOpen={() => console.log('modal did open')}
+                                       modalDidClose={() => this.setState({open: false})}
+                                       style={{alignItems: 'center'}}>
+                                       <View>
+                                       <TouchableOpacity
+                                             style={{margin: 5}}
+                                             onPress={() => this.setState({open: false})}>
+                                          <Text style={{fontSize: 20, marginBottom: 10}}>Please enter a pickup location and destination</Text>
+                                          
+                                          
+                                             
+                                          </TouchableOpacity>
+                                       </View>
+                                    </Modal>
+                                    </View>)
+
+
+    
     }
 }
 
@@ -2480,6 +3054,7 @@ function bindAction(dispatch) {
         pushNewRoute: (route) =>dispatch(pushNewRoute(route)),
     }
 }
+
 function mapStateToProps(state) {
 
     console.log("checkinguserset");
@@ -2493,7 +3068,6 @@ function mapStateToProps(state) {
     auth_token: state.route.users.access_token,
     is_driver_verified: state.route.users.is_driver_verified,
     payment_setup: state.route.users.payment_setup,
-    deliveries: state.route.users.pickups_in_progress,
 
     
   }
@@ -2510,8 +3084,6 @@ function mapStateToProps(state) {
   }
 }
 }
-
-
 
 
 
