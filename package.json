@@ -6,6 +6,7 @@
     "postinstall": "remotedev-debugger && node ./scripts/replace.js",
     "start": "node_modules/react-native/packager/packager.sh"
   },
+  
   "dependencies": {
     "action-cable-react-native": "0.0.4",
     "lodash": "^4.13.1",
